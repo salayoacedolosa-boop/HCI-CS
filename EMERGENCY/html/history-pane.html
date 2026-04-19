@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>History Pane</title>
+  <link rel="stylesheet" href="../css/history.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="screen">
+    <h1>CALL <br> HISTORY</h1>
+    <p class="sub">Your emergency call records</p>
+
+    <div class="history-list">
+      <div class="history-item" onclick="toggleDetails(this)">
+        <div class="history-summary">
+          <div class="history-icon"><i class="fa-solid fa-user-injured"></i></div>
+          <div class="history-info">
+            <div class="history-type">Student Injury</div>
+            <div class="history-meta">Today, 9:30 AM • PLP Gym Court</div>
+          </div>
+          <div class="history-arrow"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="history-details">
+          <div class="detail-row"><span class="detail-label">Location:</span><span class="detail-value">PLP Gym Court</span></div>
+          <div class="detail-row"><span class="detail-label">Response Time:</span><span class="detail-value">3 minutes</span></div>
+          <div class="detail-row"><span class="detail-label">Units Dispatched:</span><span class="detail-value">PLP Clinic Staff, School Nurse</span></div>
+          <div class="detail-row"><span class="detail-label">Description:</span><span class="detail-value">Student fell during PE class, sprained ankle</span></div>
+        </div>
+      </div>
+      <div class="history-item" onclick="toggleDetails(this)">
+        <div class="history-summary">
+          <div class="history-icon"><i class="fa-solid fa-fire"></i></div>
+          <div class="history-info">
+            <div class="history-type">Kitchen Fire</div>
+            <div class="history-meta">Yesterday, 11:45 AM • Cafeteria</div>
+          </div>
+          <div class="history-arrow"><i class="fa-solid fa-chevron-down"></i></div>
+        </div>
+        <div class="history-details">
+          <div class="detail-row"><span class="detail-label">Location:</span><span class="detail-value">PLP HM Building 4th floor</span></div>
+          <div class="detail-row"><span class="detail-label">Response Time:</span><span class="detail-value">2 minutes</span></div>
+          <div class="detail-row"><span class="detail-label">Units Dispatched:</span><span class="detail-value">PLP Response Team, Fire Extinguisher</span></div>
+          <div class="detail-row"><span class="detail-label">Description:</span><span class="detail-value">Small cooking oil fire in kitchen area</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleDetails(item) {
+      const details = item.querySelector('.history-details');
+      details.style.display = details.style.display === 'block' ? 'none' : 'block';
+    }
+  </script>
+</body>
+</html>

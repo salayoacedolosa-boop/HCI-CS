@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LifeQuest: Gamify Your Existence</title>
+    <link rel="stylesheet" href="HCI.css" />
+  </head>
+  <body>
+    <div id="onboarding-modal" class="modal active">
+      <div class="modal-content">
+        <h2>Welcome to LifeQuest</h2>
+        <p>Create your character to begin your journey.</p>
+
+        <!-- Username Input -->
+        <div class="form-group">
+          <label for="username-input">Enter Your Name</label>
+          <input
+            type="text"
+            id="username-input"
+            placeholder="Hero123"
+            maxlength="20"
+          />
+        </div>
+
+        <!-- Avatar Selection -->
+        <div class="form-group">
+          <label>Choose Your Avatar</label>
+          <div class="avatar-grid">
+            <button
+              class="avatar-btn selected"
+              data-avatar="🧙"
+              onclick="selectAvatar(this)"
+            >
+              🧙
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="⚔️"
+              onclick="selectAvatar(this)"
+            >
+              ⚔️
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="🏹"
+              onclick="selectAvatar(this)"
+            >
+              🏹
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="🛡️"
+              onclick="selectAvatar(this)"
+            >
+              🛡️
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="🔥"
+              onclick="selectAvatar(this)"
+            >
+              🔥
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="⚡"
+              onclick="selectAvatar(this)"
+            >
+              ⚡
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="🌟"
+              onclick="selectAvatar(this)"
+            >
+              🌟
+            </button>
+            <button
+              class="avatar-btn"
+              data-avatar="🐉"
+              onclick="selectAvatar(this)"
+            >
+              🐉
+            </button>
+          </div>
+        </div>
+
+        <!-- Class Selection -->
+        <p class="section-label">Choose your Class</p>
+        <div class="class-selection-grid">
+          <button class="btn-primary" onclick="selectClass('Scholar')">
+            📚 SCHOLAR (+XP for Study)
+          </button>
+          <button class="btn-primary" onclick="selectClass('Freelancer')">
+            💼 FREELANCER (+Gold for Work)
+          </button>
+          <button class="btn-primary" onclick="selectClass('Athlete')">
+            💪 ATHLETE (+Burnout Resistance)
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="levelup-modal" class="modal">
+      <div class="modal-content level-up-border">
+        <h1 class="gold-text">LEVEL UP!</h1>
+        <p>You are now Level <span id="new-level-num"></span></p>
+        <p>+1 Skill Point</p>
+        <button class="btn-primary" onclick="closeModal('levelup-modal')">
+          CONTINUE
+        </button>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="logo">LifeQuest PRO</div>
+
+      <!-- User Info Display -->
+      <div class="user-info">
+        <span class="user-avatar" id="sidebar-avatar">🧙</span>
+        <span class="user-name" id="sidebar-username">Hero123</span>
+      </div>
+
+      <div class="nav-item active" onclick="switchTab('dashboard')">
+        📊 Dashboard
+      </div>
+      <div class="nav-item" onclick="switchTab('skills')">⚡ Skill Tree</div>
+      <div class="nav-item" onclick="switchTab('shop')">🛒 Rewards Shop</div>
+      <div class="nav-item" onclick="switchTab('history')">📅 History</div>
+
+      <div class="sidebar-footer">
+        <p>Daily Streak: <span id="streak-disp">0 🔥</span></p>
+        <button class="btn-logout" onclick="logout()">🚪 Logout</button>
+      </div>
+    </div>
+
+    <div class="main-view">
+      <!-- Mobile Hamburger Menu -->
+      <button class="hamburger-menu" onclick="toggleSidebar()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <div id="tab-dashboard">
+        <!-- Top Row: Streak (left), Resources (right) -->
+        <div class="dashboard-top-row">
+          <div class="streak-corner">
+            <span class="streak-icon">🔥</span>
+            <span class="streak-value" id="dash-streak">0</span>
+            <span class="streak-label">day streak</span>
+          </div>
+
+          <div class="resources-corner">
+            <div class="resource-mini gold-mini">
+              <span>💰</span>
+              <span id="dash-gold">0</span>
+            </div>
+            <div class="resource-mini sp-mini">
+              <span>⚡</span>
+              <span id="dash-sp">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Profile Card -->
+        <div class="profile-main-card">
+          <div class="profile-card-content">
+            <div class="profile-avatar-large" id="dash-avatar">🧙</div>
+            <div class="profile-details">
+              <div class="profile-name" id="dash-username">Hero123</div>
+              <div class="profile-role-badge" id="dash-class">Scholar</div>
+              <div class="profile-level">
+                Level <span id="dash-level">1</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-stats">
+            <div class="profile-xp-section">
+              <div class="xp-label">Experience</div>
+              <div class="xp-bar-container">
+                <div class="xp-bar-fill" id="dash-xp-bar"></div>
+              </div>
+              <small class="xp-text"
+                ><span id="dash-xp-current">0</span> /
+                <span id="dash-xp-next">100</span> XP</small
+              >
+            </div>
+
+            <div class="profile-burnout-section">
+              <div class="burnout-label">Burnout</div>
+              <div class="burnout-bar-container">
+                <div class="burnout-bar-fill" id="dash-burnout-bar"></div>
+              </div>
+              <small id="dash-burnout-msg">Optimal State</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Daily Quest Card -->
+        <div class="quest-panel daily-quest-panel">
+          <div class="panel-header">
+            <h3>📌 Daily Quests</h3>
+            <button
+              class="btn-refresh"
+              onclick="refreshDailyQuests()"
+              title="Refresh Daily Quests"
+            >
+              🔄
+            </button>
+          </div>
+          <p class="quest-hint">
+            Auto-generating common life challenges (refreshes daily)
+          </p>
+          <div id="daily-quest-list"></div>
+        </div>
+
+        <!-- Custom Quests Panel -->
+        <div class="quest-panel custom-quest-panel">
+          <h3>🎯 Custom Quests</h3>
+          <div class="custom-quest-input-row">
+            <input
+              type="text"
+              id="custom-task-input"
+              placeholder="Create your own quest..."
+            />
+            <select id="custom-task-diff">
+              <option value="easy">Easy (+10 XP)</option>
+              <option value="med">Medium (+50 XP)</option>
+              <option value="hard">Hard (+100 XP)</option>
+            </select>
+            <button class="btn-primary" onclick="addCustomQuest()">ADD</button>
+          </div>
+          <div id="custom-quest-list"></div>
+        </div>
+      </div>
+
+      <div id="tab-skills" class="hidden-tab">
+        <h2>⚡ Skill Tree</h2>
+        <p>Spend Skill Points (SP) to unlock permanent life hacks.</p>
+
+        <!-- Available Skill Points -->
+        <div class="sp-display-card">
+          <span class="sp-label">Available Skill Points:</span>
+          <span class="sp-value" id="sp-display">0</span>
+        </div>
+
+        <!-- My Upgrades Panel -->
+        <div class="upgrades-panel">
+          <h3>🎒 My Upgrades</h3>
+          <div id="my-upgrades-list" class="upgrades-grid">
+            <p class="no-upgrades">No upgrades yet. Unlock skills below!</p>
+          </div>
+        </div>
+
+        <h3 class="available-skills-title">🔓 Available Skills</h3>
+        <div class="skill-grid">
+          <div
+            class="skill-node"
+            id="skill-flow"
+            onclick="unlockSkill('flow', 1)"
+          >
+            <h3>🧠 Flow State</h3>
+            <p>Burnout accumulates 20% slower.</p>
+            <small>Cost: 1 SP</small>
+          </div>
+          <div
+            class="skill-node"
+            id="skill-merchant"
+            onclick="unlockSkill('merchant', 2)"
+          >
+            <h3>🤝 Master Merchant</h3>
+            <p>Shop rewards cost 20% less Gold.</p>
+            <small>Cost: 2 SP</small>
+          </div>
+          <div
+            class="skill-node"
+            id="skill-recovery"
+            onclick="unlockSkill('recovery', 1)"
+          >
+            <h3>🛌 Quick Recovery</h3>
+            <p>Resting is twice as effective.</p>
+            <small>Cost: 1 SP</small>
+          </div>
+        </div>
+      </div>
+
+      <div id="tab-shop" class="hidden-tab">
+        <h2>🛒 Rewards Shop</h2>
+
+        <!-- Current Gold Display -->
+        <div class="shop-gold-display">
+          <span class="gold-icon">💰</span>
+          <span class="gold-amount" id="shop-gold">0</span>
+          <span class="gold-label">Gold Available</span>
+        </div>
+
+        <p class="shop-hint">Spend your gold on well-deserved rewards!</p>
+        <div class="skill-grid">
+          <!-- Low Cost Rewards -->
+          <div class="skill-node" onclick="buyReward(30)">
+            <h3>☕ Coffee Break</h3>
+            <p>Enjoy a guilt-free coffee.</p>
+            <small>30 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(40)">
+            <h3>🍪 Snack Time</h3>
+            <p>Treat yourself to a snack.</p>
+            <small>40 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(50)">
+            <h3>🚶 Short Walk</h3>
+            <p>15-minute outdoor break.</p>
+            <small>50 Gold</small>
+          </div>
+
+          <!-- Medium Cost Rewards -->
+          <div class="skill-node" onclick="buyReward(80)">
+            <h3>📺 1 Episode</h3>
+            <p>Watch one TV episode.</p>
+            <small>80 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(100)">
+            <h3>🧘 30min Meditation</h3>
+            <p>Clears 50% Burnout instantly.</p>
+            <small>100 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(120)">
+            <h3>🎵 Music Session</h3>
+            <p>1 hour of uninterrupted music.</p>
+            <small>120 Gold</small>
+          </div>
+
+          <!-- High Cost Rewards -->
+          <div class="skill-node" onclick="buyReward(200)">
+            <h3>🎮 1 Hour Gaming</h3>
+            <p>Pure leisure time.</p>
+            <small>200 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(250)">
+            <h3>🎬 Movie Night</h3>
+            <p>Watch a full movie.</p>
+            <small>250 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(300)">
+            <h3>🍽️ Eat Out</h3>
+            <p>Enjoy a meal outside.</p>
+            <small>300 Gold</small>
+          </div>
+
+          <!-- Premium Rewards -->
+          <div class="skill-node" onclick="buyReward(400)">
+            <h3>🛍️ Shopping Spree</h3>
+            <p>Buy something nice for yourself.</p>
+            <small>400 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(500)">
+            <h3>🎉 Party Night</h3>
+            <p>Go out with friends!</p>
+            <small>500 Gold</small>
+          </div>
+          <div class="skill-node" onclick="buyReward(600)">
+            <h3>✈️ Mini Trip</h3>
+            <p>A day trip to somewhere nice.</p>
+            <small>600 Gold</small>
+          </div>
+        </div>
+      </div>
+      <div id="tab-history" class="hidden-tab">
+        <h2>📅 Activity History</h2>
+
+        <!-- Stats Overview -->
+        <div class="history-stats-row">
+          <div class="history-stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-info">
+              <div class="stat-num" id="total-quests">0</div>
+              <div class="stat-label">Quests Completed</div>
+            </div>
+          </div>
+          <div class="history-stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-info">
+              <div class="stat-num" id="total-xp">0</div>
+              <div class="stat-label">Total XP Earned</div>
+            </div>
+          </div>
+          <div class="history-stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-info">
+              <div class="stat-num" id="total-gold">0</div>
+              <div class="stat-label">Gold Earned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP History Chart -->
+        <div class="history-panel">
+          <h3>📈 XP Earned (Last 7 Days)</h3>
+          <div class="chart-container">
+            <div class="bar-chart" id="xp-chart"></div>
+          </div>
+          <div class="chart-labels" id="xp-labels"></div>
+        </div>
+
+        <!-- Activity Chart -->
+        <div class="history-panel">
+          <h3>✅ Quests Completed (Last 7 Days)</h3>
+          <div class="chart-container">
+            <div class="bar-chart secondary-chart" id="quest-chart"></div>
+          </div>
+          <div class="chart-labels" id="quest-labels"></div>
+        </div>
+
+        <!-- Gold History Chart -->
+        <div class="history-panel">
+          <h3>💰 Gold Earned (Last 7 Days)</h3>
+          <div class="chart-container">
+            <div class="bar-chart gold-chart" id="gold-chart"></div>
+          </div>
+          <div class="chart-labels" id="gold-labels"></div>
+        </div>
+
+        <!-- Level Progress -->
+        <div class="history-panel">
+          <h3>🏆 Level Progress</h3>
+          <div class="level-progress-info">
+            <span>Current Level: <strong id="current-level">1</strong></span>
+            <span
+              >Total Levels Gained: <strong id="total-levels">0</strong></span
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="HCI.js"></script>
+  </body>
+</html>

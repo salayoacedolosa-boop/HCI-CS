@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Emergency Response</title>
+
+  <link rel="stylesheet" href="../css/home.css">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="screen">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="profile" onclick="goToProfile()">
+        <i class="fa-solid fa-user"></i>
+        <span>Login using your PLP Account</span>
+      </div>
+
+      <div class="location" onclick="getLocation()">
+        <span>See your Location</span>
+        <i class="fa-solid fa-location-dot"></i>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <h1>HELP IS <br> ON THEIR WAY</h1>
+    <p class="sub">Speak calmly. Tell us what happened</p>
+
+    <!-- SOS BUTTON -->
+    <div class="sos-container">
+      <div class="sos-button" id="sosBtn">
+        SOS
+      </div>
+      <p class="hint">Hold for 3 seconds to call responders</p>
+    </div>
+
+    <!-- SWIPEABLE CARDS -->
+    <div class="cards">
+      <div class="card" onclick="triggerEmergency('injury')">
+        <i class="fa-solid fa-user-injured"></i>
+        <p>I am <b>INJURED</b></p>
+      </div>
+
+      <div class="card" onclick="triggerEmergency('fire')">
+        <i class="fa-solid fa-fire"></i>
+        <p>There's a <b>FIRE</b></p>
+      </div>
+
+      <div class="card" onclick="triggerEmergency('crime')">
+        <i class="fa-solid fa-shield-halved"></i>
+        <p>There's a <b>CRIME</b></p>
+      </div>
+
+      <div class="card" onclick="triggerEmergency('accident')">
+        <i class="fa-solid fa-car-crash"></i>
+        <p>There's a <b>ACCIDENT</b></p>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <div class="active" data-route="home" onclick="goHome()"><i class="fa-solid fa-house"></i></div>
+      <div data-route="history" onclick="goHistory()"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div data-route="contact" onclick="goContact()"><i class="fa-solid fa-address-book"></i></div>
+      <div data-route="settings" onclick="goSettings()"><i class="fa-solid fa-gear"></i></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* SOS HOLD FUNCTION */
+let timer;
+const sosBtn = document.getElementById("sosBtn");
+
+sosBtn.addEventListener("mousedown", () => {
+  timer = setTimeout(() => {
+    window.location.href = "sos.html"; // you can create this later
+  }, 2000);
+});
+
+sosBtn.addEventListener("mouseup", () => clearTimeout(timer));
+sosBtn.addEventListener("mouseleave", () => clearTimeout(timer));
+
+/* EMERGENCY CARDS */
+function triggerEmergency(type) {
+  window.location.href = "emergency.html?type=" + type;
+}
+
+/* TOP BAR */
+function goToProfile() {
+  window.location.href = "profile.html";
+}
+
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log(pos.coords.latitude, pos.coords.longitude);
+      alert("Location captured (check console)");
+    },
+    () => {
+      alert("Unable to get location");
+    }
+  );
+}
+
+/* NAVIGATION */
+function goHome() {
+  window.location.href = "home.html";
+}
+
+function goHistory() {
+  window.location.href = "history.html";
+}
+
+function goContact() {
+  window.location.href = "contact.html";
+}
+
+function goSettings() {
+  window.location.href = "settings.html";
+}
+
+function setActiveMenu(route) {
+  const items = document.querySelectorAll('.bottom-nav [data-route]');
+  items.forEach(item => item.classList.toggle('active', item.dataset.route === route));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const page = window.location.pathname.split('/').pop().split('.').shift();
+  setActiveMenu(page || 'home');
+
+  document.querySelectorAll('.bottom-nav [data-route]').forEach(item => {
+    item.addEventListener('click', () => {
+      setActiveMenu(item.dataset.route);
+    });
+  });
+});
+</script>
+
+</body>
+</html>

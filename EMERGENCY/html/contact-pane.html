@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contacts Content</title>
+  <link rel="stylesheet" href="../css/contact.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="screen">
+    <h1>EMERGENCY <br> CONTACTS</h1>
+    <p class="sub">Official hotlines and personal contacts</p>
+
+    <div class="add-contact-section">
+      <button class="add-contact-btn" onclick="showAddContactForm()">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Emergency Contact</span>
+      </button>
+    </div>
+
+    <div class="contacts-content">
+      <div class="contacts-section">
+        <h3 class="section-title"><i class="fa-solid fa-building"></i>Official Emergency Hotlines</h3>
+        <div class="contact-list">
+          <div class="contact-item official">
+            <div class="contact-icon"><i class="fa-solid fa-clinic-medical"></i></div>
+            <div class="contact-info"><div class="contact-name">PLP Clinic</div><div class="contact-number">(02) 8642-1234</div><div class="contact-location">Medical Services</div></div>
+            <button class="call-btn" onclick="callNumber('(02) 8642-1234')"><i class="fa-solid fa-phone"></i></button>
+          </div>
+          <div class="contact-item official">
+            <div class="contact-icon"><i class="fa-solid fa-shield-alt"></i></div>
+            <div class="contact-info"><div class="contact-name">PLP Response Team</div><div class="contact-number">(02) 8642-5678</div><div class="contact-location">Emergency Response</div></div>
+            <button class="call-btn" onclick="callNumber('(02) 8642-5678')"><i class="fa-solid fa-phone"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="contacts-section">
+        <h3 class="section-title"><i class="fa-solid fa-user-friends"></i>Personal Emergency Contacts</h3>
+        <div class="contact-list" id="personalContacts"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="addContactModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add Emergency Contact</h3>
+          <button class="close-btn" onclick="hideAddContactForm()"><i class="fa-solid fa-times"></i></button>
+        </div>
+        <form class="contact-form" onsubmit="addContact(event)">
+          <div class="form-group"><label for="contactName">Name</label><input type="text" id="contactName" required></div>
+          <div class="form-group"><label for="contactNumber">Phone Number</label><input type="tel" id="contactNumber" required></div>
+          <div class="form-group"><label for="contactRelation">Relationship</label><select id="contactRelation"><option value="Family">Family</option><option value="Friend">Friend</option><option value="Neighbor">Neighbor</option><option value="Doctor">Doctor</option><option value="Other">Other</option></select></div>
+          <button type="submit" class="submit-btn">Add Contact</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function callNumber(number) {
+      if (confirm(`Call ${number}?`)) {
+        window.location.href = `tel:${number}`;
+      }
+    }
+
+    function showAddContactForm() {
+      document.getElementById('addContactModal').style.display = 'flex';
+    }
+
+    function hideAddContactForm() {
+      document.getElementById('addContactModal').style.display = 'none';
+    }
+
+    function addContact(event) {
+      event.preventDefault();
+      const name = document.getElementById('contactName').value;
+      const number = document.getElementById('contactNumber').value;
+      const relation = document.getElementById('contactRelation').value;
+      const contacts = JSON.parse(localStorage.getItem('personalContacts') || '[]');
+      contacts.push({ name, number, relation });
+      localStorage.setItem('personalContacts', JSON.stringify(contacts));
+      hideAddContactForm();
+      loadContacts();
+    }
+
+    function loadContacts() {
+      const personalContacts = document.getElementById('personalContacts');
+      personalContacts.innerHTML = '';
+      const contacts = JSON.parse(localStorage.getItem('personalContacts') || '[]');
+      contacts.forEach(contact => {
+        const item = document.createElement('div');
+        item.className = 'contact-item personal';
+        item.innerHTML = `
+          <div class="contact-icon"><i class="fa-solid fa-user"></i></div>
+          <div class="contact-info">
+            <div class="contact-name">${contact.name}</div>
+            <div class="contact-number">${contact.number}</div>
+            <div class="contact-location">${contact.relation}</div>
+          </div>
+          <button class="call-btn" onclick="callNumber('${contact.number}')"><i class="fa-solid fa-phone"></i></button>
+        `;
+        personalContacts.appendChild(item);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadContacts);
+  </script>
+</body>
+</html>

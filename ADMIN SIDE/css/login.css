@@ -1,0 +1,111 @@
+:root {
+  --primary: #2e793e;
+  --primary-light: rgba(46, 121, 62, 0.16);
+  --primary-soft: rgba(46, 121, 62, 0.08);
+}
+
+/* BACKGROUND */
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: radial-gradient(circle at top, #123524, #020617);
+  color: white;
+}
+
+/* CARD */
+.login-container {
+  width: 360px;
+  padding: 30px;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+
+  box-shadow: 0 0 40px rgba(46,121,62,0.2);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* TITLE */
+.login-container h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.subtext {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 25px;
+}
+
+/* INPUT GROUP */
+.input-group {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+
+  background: rgba(255,255,255,0.08);
+  color: white;
+}
+
+/* ICON RIGHT */
+.input-group i {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+/* BUTTON */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+
+  background: linear-gradient(135deg, #2e793e, #4ec710);
+  color: white;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* FORGOT */
+.forgot {
+  text-align: right;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.forgot a {
+  color: #4ec710;
+  text-decoration: none;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12px;
+  opacity: 0.6;
+}

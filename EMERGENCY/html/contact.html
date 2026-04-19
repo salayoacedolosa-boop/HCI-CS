@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Emergency Response - Contacts</title>
+
+  <link rel="stylesheet" href="../css/contact.css">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="screen">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="profile" onclick="goToProfile()">
+        <i class="fa-solid fa-user"></i>
+        <span>Login using your PLP Account</span>
+      </div>
+
+      <div class="location" onclick="getLocation()">
+        <span>See your Location</span>
+        <i class="fa-solid fa-location-dot"></i>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <h1>EMERGENCY <br> CONTACTS</h1>
+    <p class="sub">Official hotlines and personal contacts</p>
+
+    <!-- ADD CONTACT BUTTON -->
+    <div class="add-contact-section">
+      <button class="add-contact-btn" onclick="showAddContactForm()">
+        <i class="fa-solid fa-plus"></i>
+        <span>Add Emergency Contact</span>
+      </button>
+    </div>
+
+    <!-- CONTACTS CONTENT -->
+    <div class="contacts-content">
+
+      <!-- OFFICIAL CONTACTS -->
+      <div class="contacts-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-building"></i>
+          Official Emergency Hotlines
+        </h3>
+
+        <div class="contact-list">
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-clinic-medical"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">PLP Clinic</div>
+              <div class="contact-number">(02) 8642-1234</div>
+              <div class="contact-location">Medical Services</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('(02) 8642-1234')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-shield-alt"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">PLP Response Team</div>
+              <div class="contact-number">(02) 8642-5678</div>
+              <div class="contact-location">Emergency Response</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('(02) 8642-5678')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-fire"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">Bureau of Fire Protection</div>
+              <div class="contact-number">(02) 8426-0219</div>
+              <div class="contact-location">Pasig City</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('(02) 8426-0219')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-user-md"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">Pasig City Health Office</div>
+              <div class="contact-number">(02) 8643-0000</div>
+              <div class="contact-location">Emergency Medical</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('(02) 8643-0000')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">Pasig City Police Station</div>
+              <div class="contact-number">(02) 8642-1000</div>
+              <div class="contact-location">Law Enforcement</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('(02) 8642-1000')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-ambulance"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">Philippine Red Cross</div>
+              <div class="contact-number">143</div>
+              <div class="contact-location">National Hotline</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('143')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+
+          <div class="contact-item official">
+            <div class="contact-icon">
+              <i class="fa-solid fa-phone"></i>
+            </div>
+            <div class="contact-info">
+              <div class="contact-name">Emergency Hotline</div>
+              <div class="contact-number">911</div>
+              <div class="contact-location">National Emergency</div>
+            </div>
+            <button class="call-btn" onclick="callNumber('911')">
+              <i class="fa-solid fa-phone"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PERSONAL CONTACTS -->
+      <div class="contacts-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-user-friends"></i>
+          Personal Emergency Contacts
+        </h3>
+
+        <div class="contact-list" id="personalContacts">
+          <!-- Personal contacts will be added here -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ADD CONTACT MODAL -->
+    <div class="modal" id="addContactModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Add Emergency Contact</h3>
+          <button class="close-btn" onclick="hideAddContactForm()">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+        <form class="contact-form" onsubmit="addContact(event)">
+          <div class="form-group">
+            <label for="contactName">Name</label>
+            <input type="text" id="contactName" required>
+          </div>
+          <div class="form-group">
+            <label for="contactNumber">Phone Number</label>
+            <input type="tel" id="contactNumber" required>
+          </div>
+          <div class="form-group">
+            <label for="contactRelation">Relationship</label>
+            <select id="contactRelation">
+              <option value="Family">Family</option>
+              <option value="Friend">Friend</option>
+              <option value="Neighbor">Neighbor</option>
+              <option value="Doctor">Doctor</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <button type="submit" class="submit-btn">Add Contact</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <div data-route="home" onclick="goHome()"><i class="fa-solid fa-house"></i></div>
+      <div data-route="history" onclick="goHistory()"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div class="active" data-route="contact" onclick="goContact()"><i class="fa-solid fa-address-book"></i></div>
+      <div data-route="settings" onclick="goSettings()"><i class="fa-solid fa-gear"></i></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* TOP BAR */
+function goToProfile() {
+  window.location.href = "profile.html";
+}
+
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log(pos.coords.latitude, pos.coords.longitude);
+      alert("Location captured (check console)");
+    },
+    () => {
+      alert("Unable to get location");
+    }
+  );
+}
+
+/* NAVIGATION */
+function goHome() {
+  window.location.href = "home.html";
+}
+
+function goHistory() {
+  window.location.href = "history.html";
+}
+
+function goContact() {
+  window.location.href = "contact.html";
+}
+
+function goSettings() {
+  window.location.href = "settings.html";
+}
+
+/* CONTACT FUNCTIONS */
+function callNumber(number) {
+  if (confirm(`Call ${number}?`)) {
+    window.location.href = `tel:${number}`;
+  }
+}
+
+function showAddContactForm() {
+  document.getElementById('addContactModal').style.display = 'flex';
+}
+
+function hideAddContactForm() {
+  document.getElementById('addContactModal').style.display = 'none';
+  document.getElementById('contactName').value = '';
+  document.getElementById('contactNumber').value = '';
+  document.getElementById('contactRelation').value = 'Family';
+}
+
+function addContact(event) {
+  event.preventDefault();
+
+  const name = document.getElementById('contactName').value;
+  const number = document.getElementById('contactNumber').value;
+  const relation = document.getElementById('contactRelation').value;
+
+  const contactList = document.getElementById('personalContacts');
+
+  const contactItem = document.createElement('div');
+  contactItem.className = 'contact-item personal';
+  contactItem.innerHTML = `
+    <div class="contact-icon">
+      <i class="fa-solid fa-user"></i>
+    </div>
+    <div class="contact-info">
+      <div class="contact-name">${name}</div>
+      <div class="contact-number">${number}</div>
+      <div class="contact-location">${relation}</div>
+    </div>
+    <button class="call-btn" onclick="callNumber('${number}')">
+      <i class="fa-solid fa-phone"></i>
+    </button>
+  `;
+
+  contactList.appendChild(contactItem);
+  hideAddContactForm();
+
+  // Save to localStorage (simple persistence)
+  saveContacts();
+}
+
+function saveContacts() {
+  const contacts = [];
+  document.querySelectorAll('.contact-item.personal').forEach(item => {
+    const name = item.querySelector('.contact-name').textContent;
+    const number = item.querySelector('.contact-number').textContent;
+    const relation = item.querySelector('.contact-location').textContent;
+    contacts.push({ name, number, relation });
+  });
+  localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
+}
+
+function loadContacts() {
+  const contacts = JSON.parse(localStorage.getItem('emergencyContacts') || '[]');
+  const contactList = document.getElementById('personalContacts');
+
+  contacts.forEach(contact => {
+    const contactItem = document.createElement('div');
+    contactItem.className = 'contact-item personal';
+    contactItem.innerHTML = `
+      <div class="contact-icon">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="contact-info">
+        <div class="contact-name">${contact.name}</div>
+        <div class="contact-number">${contact.number}</div>
+        <div class="contact-location">${contact.relation}</div>
+      </div>
+      <button class="call-btn" onclick="callNumber('${contact.number}')">
+        <i class="fa-solid fa-phone"></i>
+      </button>
+    `;
+    contactList.appendChild(contactItem);
+  });
+}
+
+function setActiveMenu(route) {
+  const items = document.querySelectorAll('.bottom-nav [data-route]');
+  items.forEach(item => item.classList.toggle('active', item.dataset.route === route));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const page = window.location.pathname.split('/').pop().split('.').shift();
+  setActiveMenu(page || 'home');
+
+  document.querySelectorAll('.bottom-nav [data-route]').forEach(item => {
+    item.addEventListener('click', () => {
+      setActiveMenu(item.dataset.route);
+    });
+  });
+
+  // Load saved contacts
+  loadContacts();
+});
+</script>
+
+</body>
+</html>

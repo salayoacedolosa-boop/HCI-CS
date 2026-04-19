@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLP Login</title>
+  <link rel="stylesheet" href="../css/login.css" />
+</head>
+<body>
+  <div class="phone-frame">
+    <div class="screen">
+      <div class="login-shell">
+        <header class="login-header">
+          <div class="logo">🏫</div>
+          <h1>School Portal</h1>
+          <p>Sign in with your school account for safety features</p>
+        </header>
+
+        <main class="login-card">
+          <section class="login-panel">
+            <h2>School Account Login</h2>
+            <form id="loginForm">
+              <label for="email">School Email</label>
+              <input id="email" name="email" type="email" placeholder="student@school.edu" required />
+
+              <label for="password">Password</label>
+              <input id="password" name="password" type="password" placeholder="••••••••" required />
+
+              <button type="submit" class="primary-btn">Sign In</button>
+            </form>
+          </section>
+
+          <div class="divider"><span>or</span></div>
+
+          <button id="autoLoginButton" class="auto-btn">Sign In with School Account</button>
+        </main>
+
+        <footer class="login-footer">
+          <p>Contact your school if you need assistance signing in.</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const autoLoginButton = document.getElementById('autoLoginButton');
+
+    function completeLogin(message) {
+      alert(message);
+      window.location.href = 'menu.html';
+    }
+
+    loginForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const email = event.target.email.value.trim();
+      if (!email) {
+        alert('Please enter your PLP email address.');
+        return;
+      }
+      completeLogin('Signed in as ' + email + '.');
+    });
+
+    autoLoginButton.addEventListener('click', () => {
+      completeLogin('Automatically signed in using your PLP account.');
+    });
+  </script>
+</body>
+</html>

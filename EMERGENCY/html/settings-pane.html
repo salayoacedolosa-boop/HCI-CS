@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings Content</title>
+  <link rel="stylesheet" href="../css/settings.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="screen">
+    <h1>SETTINGS</h1>
+    <p class="sub">Customize your emergency response preferences</p>
+    <div class="settings-content">
+      <div class="settings-section">
+        <h3 class="section-title"><i class="fa-solid fa-exclamation-triangle"></i>Emergency Settings</h3>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Auto-Call Emergency Contacts</div><div class="setting-desc">Automatically call saved emergency contacts when SOS is triggered</div></div><label class="toggle-switch"><input type="checkbox" id="autoCall" checked><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Location Sharing</div><div class="setting-desc">Share your location with emergency responders</div></div><label class="toggle-switch"><input type="checkbox" id="locationShare" checked><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Emergency Hold Time</div><div class="setting-desc">Time to hold SOS button before calling</div></div><select class="setting-select" id="holdTime"><option value="2">2 seconds</option><option value="3" selected>3 seconds</option><option value="5">5 seconds</option></select></div>
+      </div>
+      <div class="settings-section">
+        <h3 class="section-title"><i class="fa-solid fa-bell"></i>Notifications</h3>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Push Notifications</div><div class="setting-desc">Receive alerts about emergency updates</div></div><label class="toggle-switch"><input type="checkbox" id="pushNotif" checked><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Sound Alerts</div><div class="setting-desc">Play sound when receiving emergency alerts</div></div><label class="toggle-switch"><input type="checkbox" id="soundAlerts" checked><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Vibration</div><div class="setting-desc">Vibrate device for emergency alerts</div></div><label class="toggle-switch"><input type="checkbox" id="vibration" checked><span class="slider"></span></label></div>
+      </div>
+      <div class="settings-section">
+        <h3 class="section-title"><i class="fa-solid fa-user"></i>Profile</h3>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Full Name</div><div class="setting-desc">Your registered name</div></div><div class="setting-value">John Doe</div></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Student ID</div><div class="setting-desc">PLP Student Identification</div></div><div class="setting-value">PLP2024001</div></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Emergency Contact</div><div class="setting-desc">Primary emergency contact number</div></div><div class="setting-value">(02) 8642-0000</div></div>
+      </div>
+      <div class="settings-section">
+        <h3 class="section-title"><i class="fa-solid fa-shield-alt"></i>Privacy & Security</h3>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Location Permissions</div><div class="setting-desc">Allow app to access your location</div></div><label class="toggle-switch"><input type="checkbox" id="locationPerm" checked><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Data Sharing</div><div class="setting-desc">Share anonymous usage data to improve service</div></div><label class="toggle-switch"><input type="checkbox" id="dataShare"><span class="slider"></span></label></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Biometric Lock</div><div class="setting-desc">Require fingerprint/face unlock for app access</div></div><label class="toggle-switch"><input type="checkbox" id="biometricLock"><span class="slider"></span></label></div>
+      </div>
+      <div class="settings-section">
+        <h3 class="section-title"><i class="fa-solid fa-cog"></i>App Settings</h3>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Language</div><div class="setting-desc">App display language</div></div><select class="setting-select" id="language"><option value="en" selected>English</option><option value="tl">Filipino</option></select></div>
+        <div class="setting-item"><div class="setting-info"><div class="setting-name">Theme</div><div class="setting-desc">App appearance theme</div></div><select class="setting-select" id="theme"><option value="light" selected>Light</option><option value="dark">Dark</option><option value="auto">Auto</option></select></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function loadSettings() {
+      const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
+      toggles.forEach(id => {
+        const saved = localStorage.getItem(id);
+        const element = document.getElementById(id);
+        if (saved !== null && element) {
+          element.checked = saved === 'true';
+        }
+      });
+
+      const selects = ['holdTime', 'language', 'theme'];
+      selects.forEach(id => {
+        const saved = localStorage.getItem(id);
+        const element = document.getElementById(id);
+        if (saved && element) {
+          element.value = saved;
+        }
+      });
+    }
+
+    function saveSettings() {
+      const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
+      toggles.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            localStorage.setItem(id, element.checked);
+          });
+        }
+      });
+
+      const selects = ['holdTime', 'language', 'theme'];
+      selects.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.addEventListener('change', () => {
+            localStorage.setItem(id, element.value);
+          });
+        }
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSettings();
+      saveSettings();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home Pane</title>
+  <link rel="stylesheet" href="../css/home.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <div class="screen">
+    <h1>HELP IS <br> ON THEIR WAY</h1>
+    <p class="sub">Speak calmly. Tell us what happened</p>
+
+    <div class="sos-container">
+      <div class="sos-button" id="sosBtn">SOS</div>
+      <p class="hint">Hold for 3 seconds to call responders</p>
+    </div>
+
+    <div class="cards">
+      <div class="card" onclick="triggerEmergency('injury')">
+        <i class="fa-solid fa-user-injured"></i>
+        <p>I am <b>INJURED</b></p>
+      </div>
+      <div class="card" onclick="triggerEmergency('fire')">
+        <i class="fa-solid fa-fire"></i>
+        <p>There's a <b>FIRE</b></p>
+      </div>
+      <div class="card" onclick="triggerEmergency('crime')">
+        <i class="fa-solid fa-shield-halved"></i>
+        <p>There's a <b>CRIME</b></p>
+      </div>
+      <div class="card" onclick="triggerEmergency('accident')">
+        <i class="fa-solid fa-car-crash"></i>
+        <p>There's a <b>ACCIDENT</b></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let timer;
+    const sosBtn = document.getElementById('sosBtn');
+    sosBtn.addEventListener('mousedown', () => {
+      timer = setTimeout(() => {
+        window.location.href = 'sos.html';
+      }, 2000);
+    });
+    sosBtn.addEventListener('mouseup', () => clearTimeout(timer));
+    sosBtn.addEventListener('mouseleave', () => clearTimeout(timer));
+
+    function triggerEmergency(type) {
+      window.location.href = 'emergency.html?type=' + type;
+    }
+  </script>
+</body>
+</html>

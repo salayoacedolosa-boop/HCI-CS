@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login - Emergency Response</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body>
+
+<div class="login-container">
+
+    <h1>Welcome Back</h1>
+    <p class="subtext">Emergency Response System</p>
+
+    <!-- USERNAME -->
+    <div class="input-group">
+        <input type="text" placeholder="Username">
+        <i class="fa fa-user"></i>
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="input-group">
+        <input type="password" id="password" placeholder="Password">
+        <i class="fa fa-eye" onclick="togglePassword()"></i>
+    </div>
+
+    <!-- LOGIN BUTTON -->
+    <button class="login-btn">Login</button>
+
+    <!-- FORGOT PASSWORD -->
+    <div class="forgot">
+        <a href="#">Forgot Password?</a>
+    </div>
+
+    <div class="footer">
+        PLP Emergency Response System
+    </div>
+
+</div>
+
+<script>
+function togglePassword() {
+    const password = document.getElementById("password");
+    const icon = event.target;
+
+    if (password.type === "password") {
+        password.type = "text";
+        icon.classList.remove("fa-eye");
+        icon.classList.add("fa-eye-slash");
+    } else {
+        password.type = "password";
+        icon.classList.remove("fa-eye-slash");
+        icon.classList.add("fa-eye");
+    }
+}
+</script>
+
+</body>
+</html>

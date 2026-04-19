@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PLP Emergency App</title>
+  <link rel="stylesheet" href="../css/menu.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="screen">
+
+    <!-- TOP BAR FROM HOME -->
+    <div class="top-bar">
+      <button class="profile" onclick="openProfile()" aria-label="Login using your PLP Account">
+        <i class="fa-solid fa-user" aria-hidden="true"></i>
+        <span>Login using your PLP Account</span>
+      </button>
+
+      <button class="location" onclick="openLocation()" aria-label="See your Location">
+        <span>See your Location</span>
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <!-- IFRAME CONTENT AREA -->
+    <div class="iframe-wrapper">
+      <iframe id="contentFrame" src="home-pane.html" title="Menu content"></iframe>
+    </div>
+
+    <!-- BOTTOM NAV FROM HOME -->
+    <div class="bottom-nav" role="navigation" aria-label="Main navigation">
+      <button class="nav-button active" data-src="home-pane.html" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </button>
+      <button class="nav-button" data-src="history-pane.html" aria-label="History">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+      </button>
+      <button class="nav-button" data-src="contact-pane.html" aria-label="Contacts">
+        <i class="fa-solid fa-address-book"></i>
+      </button>
+      <button class="nav-button" data-src="settings-pane.html" aria-label="Settings">
+        <i class="fa-solid fa-gear"></i>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const navButtons = document.querySelectorAll('.nav-button');
+  const contentFrame = document.getElementById('contentFrame');
+
+  navButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      navButtons.forEach(btn => btn.classList.remove('active'));
+      button.classList.add('active');
+      contentFrame.src = button.dataset.src;
+    });
+  });
+
+  function openProfile() {
+    alert('Open PLP profile page');
+  }
+
+  function openLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => alert(`Latitude: ${pos.coords.latitude}, Longitude: ${pos.coords.longitude}`),
+        () => alert('Unable to get location')
+      );
+    } else {
+      alert('Location unavailable');
+    }
+  }
+</script>
+
+</body>
+</html>

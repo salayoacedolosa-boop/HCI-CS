@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Emergency Response - Settings</title>
+
+  <link rel="stylesheet" href="../css/settings.css">
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+
+<div class="phone-frame">
+  <div class="screen">
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+      <div class="profile" onclick="goToProfile()">
+        <i class="fa-solid fa-user"></i>
+        <span>Login using your PLP Account</span>
+      </div>
+
+      <div class="location" onclick="getLocation()">
+        <span>See your Location</span>
+        <i class="fa-solid fa-location-dot"></i>
+      </div>
+    </div>
+
+    <!-- HEADER -->
+    <h1>SETTINGS</h1>
+    <p class="sub">Customize your emergency response preferences</p>
+
+    <!-- SETTINGS CONTENT -->
+    <div class="settings-content">
+
+      <!-- EMERGENCY SETTINGS -->
+      <div class="settings-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-exclamation-triangle"></i>
+          Emergency Settings
+        </h3>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Auto-Call Emergency Contacts</div>
+            <div class="setting-desc">Automatically call saved emergency contacts when SOS is triggered</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="autoCall" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Location Sharing</div>
+            <div class="setting-desc">Share your location with emergency responders</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="locationShare" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Emergency Hold Time</div>
+            <div class="setting-desc">Time to hold SOS button before calling</div>
+          </div>
+          <select class="setting-select" id="holdTime">
+            <option value="2">2 seconds</option>
+            <option value="3" selected>3 seconds</option>
+            <option value="5">5 seconds</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- NOTIFICATION SETTINGS -->
+      <div class="settings-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-bell"></i>
+          Notifications
+        </h3>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Push Notifications</div>
+            <div class="setting-desc">Receive alerts about emergency updates</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="pushNotif" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Sound Alerts</div>
+            <div class="setting-desc">Play sound when receiving emergency alerts</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="soundAlerts" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Vibration</div>
+            <div class="setting-desc">Vibrate device for emergency alerts</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="vibration" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- PROFILE SETTINGS -->
+      <div class="settings-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-user"></i>
+          Profile
+        </h3>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Full Name</div>
+            <div class="setting-desc">Your registered name</div>
+          </div>
+          <div class="setting-value">John Doe</div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Student ID</div>
+            <div class="setting-desc">PLP Student Identification</div>
+          </div>
+          <div class="setting-value">PLP2024001</div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Emergency Contact</div>
+            <div class="setting-desc">Primary emergency contact number</div>
+          </div>
+          <div class="setting-value">(02) 8642-0000</div>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Blood Type</div>
+            <div class="setting-desc">Medical information for emergencies</div>
+          </div>
+          <select class="setting-select" id="bloodType">
+            <option value="">Not specified</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- PRIVACY SETTINGS -->
+      <div class="settings-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-shield-alt"></i>
+          Privacy & Security
+        </h3>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Location Permissions</div>
+            <div class="setting-desc">Allow app to access your location</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="locationPerm" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Data Sharing</div>
+            <div class="setting-desc">Share anonymous usage data to improve service</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="dataShare">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Biometric Lock</div>
+            <div class="setting-desc">Require fingerprint/face unlock for app access</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="biometricLock">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- APP SETTINGS -->
+      <div class="settings-section">
+        <h3 class="section-title">
+          <i class="fa-solid fa-cog"></i>
+          App Settings
+        </h3>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Language</div>
+            <div class="setting-desc">App display language</div>
+          </div>
+          <select class="setting-select" id="language">
+            <option value="en" selected>English</option>
+            <option value="tl">Filipino</option>
+          </select>
+        </div>
+
+        <div class="setting-item">
+          <div class="setting-info">
+            <div class="setting-name">Theme</div>
+            <div class="setting-desc">App appearance theme</div>
+          </div>
+          <select class="setting-select" id="theme">
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+            <option value="auto">Auto</option>
+          </select>
+        </div>
+
+        <div class="setting-item clickable" onclick="showHelp()">
+          <div class="setting-info">
+            <div class="setting-name">Help & Support</div>
+            <div class="setting-desc">Get help and contact support</div>
+          </div>
+          <i class="fa-solid fa-chevron-right setting-arrow"></i>
+        </div>
+
+        <div class="setting-item clickable" onclick="showAbout()">
+          <div class="setting-info">
+            <div class="setting-name">About</div>
+            <div class="setting-desc">App version and information</div>
+          </div>
+          <i class="fa-solid fa-chevron-right setting-arrow"></i>
+        </div>
+
+        <div class="setting-item clickable" onclick="clearData()">
+          <div class="setting-info">
+            <div class="setting-name">Clear All Data</div>
+            <div class="setting-desc">Remove all saved contacts and history</div>
+          </div>
+          <i class="fa-solid fa-chevron-right setting-arrow"></i>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <div data-route="home" onclick="goHome()"><i class="fa-solid fa-house"></i></div>
+      <div data-route="history" onclick="goHistory()"><i class="fa-solid fa-clock-rotate-left"></i></div>
+      <div data-route="contact" onclick="goContact()"><i class="fa-solid fa-address-book"></i></div>
+      <div class="active" data-route="settings" onclick="goSettings()"><i class="fa-solid fa-gear"></i></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* TOP BAR */
+function goToProfile() {
+  window.location.href = "profile.html";
+}
+
+function getLocation() {
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      console.log(pos.coords.latitude, pos.coords.longitude);
+      alert("Location captured (check console)");
+    },
+    () => {
+      alert("Unable to get location");
+    }
+  );
+}
+
+/* NAVIGATION */
+function goHome() {
+  window.location.href = "home.html";
+}
+
+function goHistory() {
+  window.location.href = "history.html";
+}
+
+function goContact() {
+  window.location.href = "contact.html";
+}
+
+function goSettings() {
+  window.location.href = "settings.html";
+}
+
+/* SETTINGS FUNCTIONS */
+function showHelp() {
+  alert("Help & Support\n\nFor assistance, contact:\n- PLP IT Support: (02) 8642-9999\n- Emergency Hotline: 911\n- Email: support@plp.edu.ph");
+}
+
+function showAbout() {
+  alert("PLP Emergency Response App\n\nVersion: 1.0.0\nDeveloped for Pasig Learning Partners\n© 2026 PLP Emergency Services");
+}
+
+function clearData() {
+  if (confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+    localStorage.removeItem('emergencyContacts');
+    alert("All data has been cleared.");
+  }
+}
+
+// Load saved settings
+function loadSettings() {
+  // Load toggle states
+  const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
+  toggles.forEach(id => {
+    const saved = localStorage.getItem(id);
+    if (saved !== null) {
+      document.getElementById(id).checked = saved === 'true';
+    }
+  });
+
+  // Load select values
+  const selects = ['holdTime', 'bloodType', 'language', 'theme'];
+  selects.forEach(id => {
+    const saved = localStorage.getItem(id);
+    if (saved) {
+      document.getElementById(id).value = saved;
+    }
+  });
+}
+
+// Save settings when changed
+function saveSettings() {
+  // Save toggle states
+  const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
+  toggles.forEach(id => {
+    const element = document.getElementById(id);
+    element.addEventListener('change', () => {
+      localStorage.setItem(id, element.checked);
+    });
+  });
+
+  // Save select values
+  const selects = ['holdTime', 'bloodType', 'language', 'theme'];
+  selects.forEach(id => {
+    const element = document.getElementById(id);
+    element.addEventListener('change', () => {
+      localStorage.setItem(id, element.value);
+    });
+  });
+}
+
+function setActiveMenu(route) {
+  const items = document.querySelectorAll('.bottom-nav [data-route]');
+  items.forEach(item => item.classList.toggle('active', item.dataset.route === route));
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const page = window.location.pathname.split('/').pop().split('.').shift();
+  setActiveMenu(page || 'home');
+
+  document.querySelectorAll('.bottom-nav [data-route]').forEach(item => {
+    item.addEventListener('click', () => {
+      setActiveMenu(item.dataset.route);
+    });
+  });
+
+  // Initialize settings
+  loadSettings();
+  saveSettings();
+});
+</script>
+
+</body>
+</html>

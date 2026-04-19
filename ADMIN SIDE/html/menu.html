@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emergency Response Admin Dashboard</title>
+<link rel="stylesheet" href="../css/menu.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="dashboard">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <h2>PLP Emergency Response</h2>
+
+        <ul>
+            <!-- LIVE MAP (LANDING PAGE) -->
+            <li onclick="loadPage('map.html', this)" class="active">
+                <i class="fa fa-map"></i> Live Map
+            </li>
+
+            <li onclick="loadPage('incidents.html', this)">
+                <i class="fa fa-exclamation-triangle"></i> Incidents
+            </li>
+
+            <li onclick="loadPage('responders.html', this)">
+                <i class="fa fa-user-shield"></i> Responders
+            </li>
+
+            <li onclick="loadPage('reports.html', this)">
+                <i class="fa fa-chart-bar"></i> Reports
+            </li>
+
+            <li onclick="loadPage('settings.html', this)">
+                <i class="fa fa-cog"></i> Settings
+            </li>
+        </ul>
+
+        <!-- FOOTER -->
+        <div class="sidebar-footer">
+            <div>
+                <i class="fa fa-user"></i>
+                <span>Admin User</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <h1>Live Emergency Map</h1>
+        </div>
+
+        <!-- CONTENT FRAME (LANDING PAGE = MAP) -->
+        <iframe id="contentFrame" src="map.html"></iframe>
+
+    </div>
+
+</div>
+
+<script>
+function loadPage(page, el) {
+    document.getElementById("contentFrame").src = page;
+
+    document.querySelectorAll(".sidebar li").forEach(li => {
+        li.classList.remove("active");
+    });
+
+    el.classList.add("active");
+
+    // OPTIONAL: update title dynamically
+    const titles = {
+        "map.html": "Live Emergency Map",
+        "incidents.html": "Incidents Management",
+        "responders.html": "Responders",
+        "reports.html": "Reports & Analytics",
+        "settings.html": "System Settings"
+    };
+
+    document.querySelector(".topbar h1").innerText = titles[page] || "Dashboard";
+}
+</script>
+
+</body>
+</html>
