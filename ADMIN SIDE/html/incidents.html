@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Incidents</title>
+
+<link rel="stylesheet" href="../css/incidents.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2>Incident Reports</h2>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search...">
+        <i class="fa fa-search"></i>
+    </div>
+
+    <div class="custom-select" id="customSelect">
+        <div class="select-selected">All</div>
+        <div class="select-items">
+            <div data-value="all">All</div>
+            <div data-value="active">Active</div>
+            <div data-value="resolved">Resolved</div>
+        </div>
+    </div>
+
+    <button class="add-btn" onclick="openModal()">
+        <i class="fa fa-plus"></i>
+    </button>
+
+</div>
+
+<!-- INCIDENT GRID -->
+<div class="incidents-grid" id="incidentContainer"></div>
+
+<!-- MODAL -->
+<div class="modal" id="incidentModal">
+
+  <div class="modal-content emergency">
+
+    <div class="modal-header">
+      <h3>Report Incident</h3>
+      <span class="close" onclick="closeModal()">&times;</span>
+    </div>
+
+    <div class="modal-body">
+
+      <input type="text" id="name" placeholder="Full Name">
+      <div class="location-input">
+
+    <!-- 📍 TRACK BUTTON -->
+    <button type="button" class="track-btn" onclick="trackCurrentLocation()">
+        <i class="fa-solid fa-location-crosshairs"></i>
+    </button>
+
+    <!-- LOCATION FIELD -->
+    <input type="text" id="location" placeholder="Specific Location (e.g. Room 101)">
+
+</div>
+      <select id="incident">
+        <option value="fire">Fire</option>
+        <option value="medical">Medical</option>
+        <option value="accident">Accident</option>
+        <option value="security">Security</option>
+      </select>
+      <input type="text" id="type" placeholder="Note">
+      <input type="text" id="contact" placeholder="Contact Number">
+
+      <select id="status">
+        <option value="active">Active</option>
+        <option value="resolved">Resolved</option>
+      </select>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="save-btn" onclick="addIncident()"> SAVE INCIDENT
+      </button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+/* =========================
+   📞 CALL
+========================= */
+function callUser(number) {
+    window.location.href = "tel:" + number;
+}
+
+/* =========================
+   🧠 MODAL CONTROL
+========================= */
+const modal = document.getElementById("incidentModal");
+
+function openModal() {
+    modal.classList.add("show");
+
+    setTimeout(() => {
+        document.getElementById("name").focus();
+    }, 100);
+}
+
+function closeModal() {
+    modal.classList.remove("show");
+}
+
+/* =========================
+   ⌨️ SHORTCUTS (FINAL FIX)
+========================= */
+
+// CTRL + A → OPEN MODAL
+document.addEventListener("keydown", function(e) {
+
+    if (e.ctrlKey && e.key.toLowerCase() === "a") {
+        e.preventDefault();
+
+        if (!modal.classList.contains("show")) {
+            openModal();
+        }
+    }
+
+});
+
+// ENTER → SAVE (ONLY INSIDE MODAL INPUTS)
+document.addEventListener("keydown", function(e) {
+
+    if (!modal.classList.contains("show")) return;
+
+    const active = document.activeElement;
+
+    if (
+        e.key === "Enter" &&
+        (active.tagName === "INPUT" || active.tagName === "SELECT")
+    ) {
+        e.preventDefault();
+        addIncident();
+    }
+
+});
+
+// ESC → CLOSE MODAL
+document.addEventListener("keydown", function(e) {
+
+    if (e.key === "Escape" && modal.classList.contains("show")) {
+        closeModal();
+    }
+
+});
+
+/* =========================
+   🖱 CLICK OUTSIDE TO CLOSE
+========================= */
+modal.addEventListener("click", function(e) {
+    if (e.target === modal) {
+        closeModal();
+    }
+});
+
+/* =========================
+   ⚡ QUICK TYPE BUTTONS
+========================= */
+function setType(value) {
+    document.getElementById("type").value = value;
+}
+
+/* =========================
+   🧱 CREATE CARD
+========================= */
+function createCard(data) {
+
+    const container = document.getElementById("incidentContainer");
+
+    const card = document.createElement("div");
+    card.className = `incident-card ${data.status}`;
+
+    card.innerHTML = `
+    <div class="card-top">
+        <div class="user">
+            <i class="fa fa-user"></i>
+            <div>
+                <h3>${data.name}</h3>
+                <span>Caller</span>
+            </div>
+        </div>
+        <span class="status ${data.status}">
+            ${data.status.toUpperCase()}
+        </span>
+    </div>
+
+    <div class="card-body">
+
+        <!-- 📍 LOCATION WITH TRACK BUTTON -->
+        <div class="location-row">
+            <button class="track-btn" onclick="trackLocation('${data.location}')">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+
+            <span class="location-text">${data.location}</span>
+        </div>
+
+        <p><strong>Incident:</strong> ${data.type}</p>
+        <p><strong>Contact:</strong> ${data.contact}</p>
+    </div>
+
+    <div class="card-actions">
+        <button class="btn call" onclick="callUser('${data.contact}')">
+            <i class="fa fa-phone"></i>
+        </button>
+    </div>
+`;
+
+    container.prepend(card);
+}
+
+/* =========================
+   ➕ ADD INCIDENT
+========================= */
+function addIncident() {
+
+    const name = document.getElementById("name").value.trim();
+    const location = document.getElementById("location").value.trim();
+    const type = document.getElementById("type").value.trim();
+    const contact = document.getElementById("contact").value.trim();
+    const status = document.getElementById("status").value;
+
+    if (!name || !location || !type || !contact) {
+        alert("Fill required fields");
+        return;
+    }
+
+    createCard({ name, location, type, contact, status });
+
+    closeModal();
+
+    // 📞 AUTO CALL
+    callUser(contact);
+
+    // clear fields
+    document.getElementById("name").value = "";
+    document.getElementById("location").value = "";
+    document.getElementById("type").value = "";
+    document.getElementById("contact").value = "";
+}
+
+/* =========================
+   📊 SAMPLE DATA LOAD
+========================= */
+window.addEventListener("load", () => {
+
+    const samples = [
+        {
+            name: "Juan Dela Cruz",
+            location: "Room 101",
+            type: "Fire Emergency",
+            contact: "09123456789",
+            status: "active"
+        },
+        {
+            name: "Maria Santos",
+            location: "Clinic",
+            type: "Medical Emergency",
+            contact: "09987654321",
+            status: "resolved"
+        }
+    ];
+
+    samples.forEach(createCard);
+});
+
+function trackLocation(location) {
+    console.log("Tracking location:", location);
+
+    // ready for map integration
+    // example (iframe/map communication)
+    window.parent.postMessage({
+        type: "TRACK_LOCATION",
+        location: location
+    }, "*");
+}
+
+</script>
+
+</body>
+</html>
