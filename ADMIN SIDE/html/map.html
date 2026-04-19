@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PLP Floor Plan Map</title>
+
+<!-- LEAFLET -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #0b0f1a;
+}
+
+/* SEARCH BAR */
+.search-box {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    gap: 10px;
+}
+
+.search-box input {
+    padding: 10px;
+    width: 250px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+}
+
+.search-box button {
+    padding: 10px 15px;
+    border: none;
+    background: #2e793e;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* MAP */
+#map {
+    height: 100vh;
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- SEARCH -->
+<div class="search-box">
+    <input type="text" id="search" placeholder="Search location (e.g. Room 101)">
+    <button onclick="searchLocation()">Search</button>
+</div>
+
+<div id="map"></div>
+
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+
+/* =========================
+   1. INIT MAP (FLOOR PLAN)
+========================= */
+
+var map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -2
+});
+
+// FLOOR SIZE (adjust if needed)
+var bounds = [[0,0], [1000,1000]];
+
+// YOUR FLOOR PLAN IMAGE
+var image = L.imageOverlay('../images/plp_floor1.png', bounds).addTo(map);
+
+map.fitBounds(bounds);
+
+/* =========================
+   2. SAMPLE LOCATIONS (DATABASE SIMULATION)
+========================= */
+
+const locations = [
+    { name: "Room 101", x: 300, y: 400 },
+    { name: "Library", x: 700, y: 200 },
+    { name: "Clinic", x: 500, y: 600 },
+    { name: "Stairs A", x: 200, y: 800 }
+];
+
+/* =========================
+   3. MARKERS STORAGE
+========================= */
+
+let currentMarker;
+let currentCircle;
+
+/* =========================
+   4. SEARCH FUNCTION (AUTO FOCUS)
+========================= */
+
+function searchLocation() {
+    const query = document.getElementById("search").value.toLowerCase();
+
+    const found = locations.find(loc => 
+        loc.name.toLowerCase().includes(query)
+    );
+
+    if (!found) {
+        alert("Location not found");
+        return;
+    }
+
+    focusLocation(found);
+}
+
+/* =========================
+   5. FOCUS FUNCTION (LIKE GOOGLE MAPS)
+========================= */
+
+function focusLocation(loc) {
+
+    // REMOVE OLD
+    if (currentMarker) map.removeLayer(currentMarker);
+    if (currentCircle) map.removeLayer(currentCircle);
+
+    // ADD MARKER
+    currentMarker = L.marker([loc.y, loc.x]).addTo(map)
+        .bindPopup(loc.name)
+        .openPopup();
+
+    // ADD HIGHLIGHT
+    currentCircle = L.circle([loc.y, loc.x], {
+        color: 'red',
+        radius: 60
+    }).addTo(map);
+
+    // SMOOTH ZOOM
+    map.flyTo([loc.y, loc.x], 1);
+}
+
+/* =========================
+   6. CLICK TO ADD INCIDENT (DEMO)
+========================= */
+
+map.on('click', function(e) {
+
+    let x = e.latlng.lng;
+    let y = e.latlng.lat;
+
+    L.circle([y, x], {
+        color: 'red',
+        radius: 40
+    }).addTo(map)
+    .bindPopup("New Incident")
+    .openPopup();
+
+});
+
+/* =========================
+   7. REAL-TIME SIMULATION
+========================= */
+
+setInterval(() => {
+    console.log("Fetching updates...");
+    // dito mo ilalagay fetch("get_incidents.php")
+}, 5000);
+
+</script>
+
+</body>
+</html>
