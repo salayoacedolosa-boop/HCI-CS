@@ -52,7 +52,7 @@
 
         <!-- TOP BAR -->
         <div class="topbar">
-            <h1>Live Emergency Map</h1>
+            <h1>Welcome, Admin</h1>
         </div>
 
         <!-- CONTENT FRAME (LANDING PAGE = MAP) -->
@@ -71,16 +71,6 @@ function loadPage(page, el) {
     });
 
     el.classList.add("active");
-
-    // OPTIONAL: update title dynamically
-    const titles = {
-        "map.html": "Live Emergency Map",
-        "incidents.html": "Incidents Management",
-        "responders.html": "Responders",
-        "reports.html": "Reports & Analytics",
-        "settings.html": "System Settings"
-    };
-
     document.querySelector(".topbar h1").innerText = titles[page] || "Dashboard";
 }
 </script>
