@@ -77,25 +77,6 @@
     </table>
 </div>
 
-<!-- =========================
-   👥 PERSONNEL & ACCOUNTABILITY
-========================= -->
-<h3 class="section-title">Personnel & Accountability</h3>
-
-<div class="chart-container">
-    <table class="report-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Location</th>
-                <th>Incident</th>
-            </tr>
-        </thead>
-        <tbody id="personnelTable"></tbody>
-    </table>
-</div>
-
 <script>
 
 /* =========================
@@ -127,8 +108,8 @@ document.getElementById("activeIncidents").innerText =
    📡 COMMUNICATION LOGS DATA
 ========================= */
 const logs = [
-    {msg:"Alert sent", receiver:"Responder 1", status:"Delivered", time:"10:31"},
-    {msg:"Acknowledged", receiver:"Responder 1", status:"Confirmed", time:"10:32"}
+    {msg:"Alert sent", receiver:"PLP Clinic", status:"Delivered", time:"10:31"},
+    {msg:"Acknowledged", receiver:"Police Station (Rosario)", status:"Confirmed", time:"10:32"}
 ];
 
 logs.forEach(l => {
