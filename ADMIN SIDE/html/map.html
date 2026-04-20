@@ -2,174 +2,114 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>PLP Floor Plan Map</title>
+<title>Emergency Command Map</title>
 
-<!-- LEAFLET -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="../css/map.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 
-<style>
-body {
-    margin: 0;
-    font-family: Arial;
-    background: #0b0f1a;
-}
-
-/* SEARCH BAR */
-.search-box {
-    position: absolute;
-    top: 15px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000;
-    display: flex;
-    gap: 10px;
-}
-
-.search-box input {
-    padding: 10px;
-    width: 250px;
-    border-radius: 8px;
-    border: none;
-    outline: none;
-}
-
-.search-box button {
-    padding: 10px 15px;
-    border: none;
-    background: #2e793e;
-    color: white;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* MAP */
-#map {
-    height: 100vh;
-}
-</style>
+<!-- GOOGLE MAP -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
 
 </head>
 
 <body>
 
-<!-- SEARCH -->
-<div class="search-box">
-    <input type="text" id="search" placeholder="Search location (e.g. Room 101)">
-    <button onclick="searchLocation()">Search</button>
-</div>
-
+<!-- MAP -->
 <div id="map"></div>
 
-<!-- LEAFLET JS -->
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!-- RIGHT PANEL -->
+<div class="panel">
+
+    <div class="panel-header">
+        <h3>Sending Units</h3>
+        <span>#39</span>
+    </div>
+
+     <!-- CALLER -->
+      <label for="name">Caller Information</label>
+      <input type="text" id="name" placeholder="Caller Name">
+           <!-- CONTACT -->
+      <input type="text" id="contact" placeholder="Contact Number">
+
+
+    <!-- UNIT -->
+    <label>Which unit to send?</label>
+    <div class="btn-group" id="unitGroup">
+        <button class="active">Police</button>
+        <button>Fire</button>
+        <button>Rescue</button>
+    </div>
+
+    <!-- TYPE -->
+    <label>Type of incident</label>
+    <select>
+        <option>Fire</option>
+        <option>Medical</option>
+        <option>Accident</option>
+        <option>Security</option>
+    </select>
+
+    <!-- PROBLEM -->
+    <label>What is the problem?</label>
+    <input type="text" placeholder="Describe incident...">
+
+    <hr>
+
+    <!-- VICTIMS -->
+    <label>How many victims?</label>
+    <div class="btn-group small">
+        <button>No one</button>
+        <button class="active">1-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+    </div>
+
+    <!-- AGGRESSORS -->
+    <label>How many aggressors?</label>
+    <div class="btn-group small">
+        <button>Single</button>
+        <button class="active">2-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+    </div>
+
+    <!-- RANGE -->
+    <label>Rate the danger level</label>
+    <input type="range" class="range">
+
+    <div class="panel-footer">
+        <button class="send-btn">Send Units</button>
+    </div>
+
+</div>
 
 <script>
 
-/* =========================
-   1. INIT MAP (FLOOR PLAN)
-========================= */
+let map;
 
-var map = L.map('map', {
-    crs: L.CRS.Simple,
-    minZoom: -2
-});
-
-// FLOOR SIZE (adjust if needed)
-var bounds = [[0,0], [1000,1000]];
-
-// YOUR FLOOR PLAN IMAGE
-var image = L.imageOverlay('../images/plp_floor1.png', bounds).addTo(map);
-
-map.fitBounds(bounds);
-
-/* =========================
-   2. SAMPLE LOCATIONS (DATABASE SIMULATION)
-========================= */
-
-const locations = [
-    { name: "Room 101", x: 300, y: 400 },
-    { name: "Library", x: 700, y: 200 },
-    { name: "Clinic", x: 500, y: 600 },
-    { name: "Stairs A", x: 200, y: 800 }
-];
-
-/* =========================
-   3. MARKERS STORAGE
-========================= */
-
-let currentMarker;
-let currentCircle;
-
-/* =========================
-   4. SEARCH FUNCTION (AUTO FOCUS)
-========================= */
-
-function searchLocation() {
-    const query = document.getElementById("search").value.toLowerCase();
-
-    const found = locations.find(loc => 
-        loc.name.toLowerCase().includes(query)
-    );
-
-    if (!found) {
-        alert("Location not found");
-        return;
-    }
-
-    focusLocation(found);
+/* MAP INIT */
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 14.5764, lng: 121.0851 },
+        zoom: 17,
+        styles: [
+            { elementType: "geometry", stylers: [{ color: "#0f1a13" }] },
+            { featureType: "road", stylers: [{ color: "#1e293b" }] },
+            { featureType: "water", stylers: [{ color: "#020617" }] }
+        ]
+    });
 }
 
-/* =========================
-   5. FOCUS FUNCTION (LIKE GOOGLE MAPS)
-========================= */
-
-function focusLocation(loc) {
-
-    // REMOVE OLD
-    if (currentMarker) map.removeLayer(currentMarker);
-    if (currentCircle) map.removeLayer(currentCircle);
-
-    // ADD MARKER
-    currentMarker = L.marker([loc.y, loc.x]).addTo(map)
-        .bindPopup(loc.name)
-        .openPopup();
-
-    // ADD HIGHLIGHT
-    currentCircle = L.circle([loc.y, loc.x], {
-        color: 'red',
-        radius: 60
-    }).addTo(map);
-
-    // SMOOTH ZOOM
-    map.flyTo([loc.y, loc.x], 1);
-}
-
-/* =========================
-   6. CLICK TO ADD INCIDENT (DEMO)
-========================= */
-
-map.on('click', function(e) {
-
-    let x = e.latlng.lng;
-    let y = e.latlng.lat;
-
-    L.circle([y, x], {
-        color: 'red',
-        radius: 40
-    }).addTo(map)
-    .bindPopup("New Incident")
-    .openPopup();
-
+/* BUTTON ACTIVE */
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".btn-group button").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const group = this.parentElement;
+            group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
 });
-
-/* =========================
-   7. REAL-TIME SIMULATION
-========================= */
-
-setInterval(() => {
-    console.log("Fetching updates...");
-    // dito mo ilalagay fetch("get_incidents.php")
-}, 5000);
 
 </script>
 

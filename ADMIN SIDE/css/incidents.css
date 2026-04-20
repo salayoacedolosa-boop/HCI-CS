@@ -86,11 +86,20 @@ body {
 
 .modal-content.emergency {
   background: linear-gradient(180deg, #020617, #0f1a13);
-  padding: 40px;
+
+  padding: 25px; /* 🔥 reduced from 40px */
   border-radius: 16px;
-  width: 320px;
+
+  width: 520px;
+  max-height: 90vh; /* 🔥 LIMIT HEIGHT */
+
+  overflow: hidden; /* prevent overflow outside */
+  
   border: 1px solid rgba(255,255,255,0.05);
   box-shadow: 0 0 40px rgba(46,121,62,0.2);
+
+  display: flex;
+  flex-direction: column;
 }
 
 /* HEADER */
@@ -104,6 +113,12 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  flex-shrink: 0;
+  margin-top: 10px;
+}
+
+.modal-footer {
+  grid-column: span 2;
 }
 
 .close {
@@ -115,19 +130,72 @@ body {
 .close:hover {
   opacity: 1;
 }
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.modal-body label,
+.modal-body hr,
+.modal-body .btn-group,
+.modal-body .range,
+.modal-body #contact,
+.modal-body #status {
+  grid-column: 1 / -1;
+}
+
+.modal-body hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  margin: 2px 0 6px;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
 
 /* INPUTS */
 .modal-body input,
 .modal-body select {
   width: 100%;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   padding: 12px;
   border-radius: 10px;
   border: none;
   background: rgba(255,255,255,0.05);
   color: white;
   font-size: 14px;
+  box-sizing: border-box;
 }
+
+.modal-body select option {
+  background: #0b1421;
+  color: #e6edf5;
+}
+
+.range {
+  width: 100%;
+  accent-color: var(--primary);
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.range-value {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 10px;
+}
+
 
 /* QUICK BUTTONS */
 .quick-types button {
@@ -310,6 +378,55 @@ body {
   box-shadow: 0 0 25px rgba(46,121,62,0.2);
 }
 
+/* DISPATCH UI STYLE */
+.dispatch-ui {
+  background: linear-gradient(180deg, #020617, #0f1a13);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+/* LABEL */
+.dispatch-ui label {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* BUTTON GROUP */
+.dispatch-ui .btn-group {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  font-size: 12px;
+}
+
+.dispatch-ui .btn-group button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255,255,255,0.05);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dispatch-ui .btn-group button:hover {
+  background: rgba(46, 121, 62, 0.35);
+}
+
+.dispatch-ui .btn-group button.active {
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(46,121,62,0.5);
+}
+
+/* SMALL BUTTONS */
+.dispatch-ui .btn-group.small button {
+  font-size: 11px;
+  padding: 8px;
+}
+
 /* TOP */
 .card-top {
   display: flex;
@@ -420,6 +537,7 @@ body {
   align-items: stretch; /* 🔥 FIX alignment */
   gap: 10px;
   margin-bottom: 12px;
+  width: 100%;
 }
 
 /* BUTTON */

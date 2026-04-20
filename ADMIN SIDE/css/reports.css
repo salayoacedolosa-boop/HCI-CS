@@ -1,0 +1,131 @@
+:root {
+  --primary: #2e793e;
+  --primary-light: rgba(46, 121, 62, 0.16);
+  --primary-soft: rgba(46, 121, 62, 0.08);
+  --danger: #dc3545;
+  --success: #28a745;
+}
+
+/* BODY */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0f1a13, #020617);
+  color: white;
+  padding: 25px;
+}
+
+/* HEADER */
+.header {
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: white;
+}
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  background: rgba(255,255,255,0.04);
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.05);
+  backdrop-filter: blur(8px);
+  transition: 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(46,121,62,0.2);
+}
+
+.stat-card h3 {
+  margin: 0;
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.stat-card p {
+  margin: 5px 0 0;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+/* CARD */
+.chart-container {
+  background: rgba(255,255,255,0.04);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-bottom: 20px;
+}
+
+/* SIDE BY SIDE */
+.row-flex {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.chart-small {
+  flex: 1;
+  min-width: 280px;
+}
+
+.table-side {
+  flex: 1.5;
+  min-width: 350px;
+}
+
+.chart-small canvas {
+  max-height: 250px;
+}
+
+/* TABLE */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.report-table th,
+.report-table td {
+  padding: 12px;
+  font-size: 13px;
+  text-align: center;
+  width: 25%;
+}
+
+.report-table th {
+  color: var(--primary);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.report-table tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.report-table td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* STATUS COLORS */
+td:nth-child(2) {
+  color: var(--success);
+}
+/* TITLE */
+.section-title {
+  margin: 25px 0 10px;
+  font-size: 16px;
+  color: var(--primary);
+}

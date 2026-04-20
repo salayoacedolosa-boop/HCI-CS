@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Reports & Analytics</title>
+
+<link rel="stylesheet" href="../css/reports.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2> Reports & Analytics</h2>
+</div>
+
+<h3 class="section-title">Real-Time Operations</h3>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <h3>Active Incidents</h3>
+        <p id="activeIncidents">0</p>
+    </div>
+    <div class="stat-card">
+        <h3>Available Responders</h3>
+        <p>5</p>
+    </div>
+    <div class="stat-card">
+        <h3>Evacuation</h3>
+        <p>78%</p>
+    </div>
+</div>
+
+<!-- SIDE BY SIDE -->
+<div class="row-flex">
+
+    <div class="chart-container chart-small">
+        <h3>Incident Distribution</h3>
+        <canvas id="incidentChart"></canvas>
+    </div>
+
+    <div class="chart-container table-side">
+        <h3>Incident Documentation</h3>
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="incidentTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- =========================
+   📡 COMMUNICATION LOGS
+========================= -->
+<h3 class="section-title">Communication Logs</h3>
+
+<div class="chart-container">
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Message</th>
+                <th>Receiver</th>
+                <th>Status</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="logTable"></tbody>
+    </table>
+</div>
+
+<!-- =========================
+   👥 PERSONNEL & ACCOUNTABILITY
+========================= -->
+<h3 class="section-title">Personnel & Accountability</h3>
+
+<div class="chart-container">
+    <table class="report-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Location</th>
+                <th>Incident</th>
+            </tr>
+        </thead>
+        <tbody id="personnelTable"></tbody>
+    </table>
+</div>
+
+<script>
+
+/* =========================
+   INCIDENT DATA
+========================= */
+const incidents = [
+    {time:"10:30 AM", location:"Room 101", type:"Fire", status:"Active"},
+    {time:"09:20 AM", location:"Clinic", type:"Medical", status:"Resolved"},
+    {time:"08:00 AM", location:"Hallway", type:"Accident", status:"Active"},
+    {time:"07:30 AM", location:"Gate", type:"Others", status:"Resolved"}
+];
+
+/* LOAD INCIDENT TABLE */
+incidents.forEach(i => {
+    document.getElementById("incidentTable").innerHTML += `
+        <tr>
+            <td>${i.time}</td>
+            <td>${i.location}</td>
+            <td>${i.type}</td>
+            <td>${i.status}</td>
+        </tr>`;
+});
+
+/* COUNT ACTIVE */
+document.getElementById("activeIncidents").innerText =
+    incidents.filter(i => i.status === "Active").length;
+
+/* =========================
+   📡 COMMUNICATION LOGS DATA
+========================= */
+const logs = [
+    {msg:"Alert sent", receiver:"Responder 1", status:"Delivered", time:"10:31"},
+    {msg:"Acknowledged", receiver:"Responder 1", status:"Confirmed", time:"10:32"}
+];
+
+logs.forEach(l => {
+    document.getElementById("logTable").innerHTML += `
+        <tr>
+            <td>${l.msg}</td>
+            <td>${l.receiver}</td>
+            <td>${l.status}</td>
+            <td>${l.time}</td>
+        </tr>`;
+});
+
+/* =========================
+   👥 PERSONNEL DATA
+========================= */
+const personnel = [
+    {name:"John", status:"Safe", location:"Lobby", incident:"Fire"},
+    {name:"Anna", status:"Evacuating", location:"Hallway", incident:"Medical"}
+];
+
+personnel.forEach(p => {
+    document.getElementById("personnelTable").innerHTML += `
+        <tr>
+            <td>${p.name}</td>
+            <td>${p.status}</td>
+            <td>${p.location}</td>
+            <td>${p.incident}</td>
+        </tr>`;
+});
+
+/* =========================
+   📊 CHART DATA
+========================= */
+let fire=0, medical=0, accident=0, other=0;
+
+incidents.forEach(i=>{
+    if(i.type==="Fire") fire++;
+    else if(i.type==="Medical") medical++;
+    else if(i.type==="Accident") accident++;
+    else other++;
+});
+
+/* CHART */
+const ctx = document.getElementById("incidentChart").getContext("2d");
+
+const fireGradient = ctx.createLinearGradient(0,0,0,250);
+fireGradient.addColorStop(0,"#ff7b00");
+fireGradient.addColorStop(1,"#ff3c00");
+
+const medicalGradient = ctx.createLinearGradient(0,0,0,250);
+medicalGradient.addColorStop(0,"#ff4d4d");
+medicalGradient.addColorStop(1,"#b30000");
+
+const accidentGradient = ctx.createLinearGradient(0,0,0,250);
+accidentGradient.addColorStop(0,"#ffd633");
+accidentGradient.addColorStop(1,"#e6ac00");
+
+const otherGradient = ctx.createLinearGradient(0,0,0,250);
+otherGradient.addColorStop(0,"#9e9e9e");
+otherGradient.addColorStop(1,"#4f4f4f");
+
+new Chart(ctx,{
+    type:'bar',
+    data:{
+        labels:['Fire','Medical','Accident','Others'],
+        datasets:[{
+            data:[fire,medical,accident,other],
+            backgroundColor:[
+                fireGradient,
+                medicalGradient,
+                accidentGradient,
+                otherGradient
+            ],
+            borderRadius:6
+        }]
+    },
+    options:{
+        plugins:{legend:{display:false}},
+        scales:{
+            x:{ticks:{color:"#ccc"},grid:{display:false}},
+            y:{ticks:{color:"#ccc"},grid:{color:"rgba(255,255,255,0.05)"}}
+        }
+    }
+});
+
+</script>
+
+</body>
+</html>

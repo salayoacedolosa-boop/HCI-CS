@@ -44,36 +44,78 @@
 <!-- MODAL -->
 <div class="modal" id="incidentModal">
 
-  <div class="modal-content emergency">
+  <div class="modal-content emergency dispatch-ui">
 
+    <!-- HEADER -->
     <div class="modal-header">
-      <h3>Report Incident</h3>
+      <h3>Sending Units</h3>
       <span class="close" onclick="closeModal()">&times;</span>
     </div>
 
     <div class="modal-body">
 
-      <input type="text" id="name" placeholder="Full Name">
-      <div class="location-input">
-
-    <!-- 📍 TRACK BUTTON -->
-    <button type="button" class="track-btn" onclick="trackCurrentLocation()">
-        <i class="fa-solid fa-location-crosshairs"></i>
-    </button>
-
-    <!-- LOCATION FIELD -->
-    <input type="text" id="location" placeholder="Specific Location (e.g. Room 101)">
-
-</div>
-      <select id="incident">
-        <option value="fire">Fire</option>
-        <option value="medical">Medical</option>
-        <option value="accident">Accident</option>
-        <option value="security">Security</option>
-      </select>
-      <input type="text" id="type" placeholder="Note">
+      <!-- CALLER -->
+      <label for="name">Caller Information</label>
+      <input type="text" id="name" placeholder="Caller Name">
+           <!-- CONTACT -->
       <input type="text" id="contact" placeholder="Contact Number">
 
+      <!-- UNIT -->
+      <label>Which unit to send?</label>
+      <div class="btn-group" id="unitGroup">
+        <button class="active">Police</button>
+        <button>Fire</button>
+        <button>Rescue</button>
+      </div>
+
+      <!-- TYPE -->
+      <label>Type of incident</label>
+      <select id="incident">
+        <option value="Fire">Fire</option>
+        <option value="Medical">Medical</option>
+        <option value="Accident">Accident</option>
+        <option value="Security">Security</option>
+      </select>
+
+      <!-- PROBLEM -->
+      <label>What is the problem?</label>
+      <input type="text" id="type" placeholder="Describe incident...">
+
+      <hr>
+
+      <!-- LOCATION -->
+      <div class="location-input">
+        <button type="button" class="track-btn" onclick="trackCurrentLocation()">
+          <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
+        <input type="text" id="location" placeholder="Specific Location">
+      </div>
+
+      <!-- VICTIMS -->
+      <label>How many victims?</label>
+      <div class="btn-group small" id="victimGroup">
+        <button>No one</button>
+        <button class="active">1-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+      </div>
+
+      <!-- AGGRESSORS -->
+      <label>How many aggressors?</label>
+      <div class="btn-group small" id="aggressorGroup">
+        <button>Single</button>
+        <button class="active">2-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+      </div>
+
+      <!-- DANGER -->
+      <label for="dangerRange">Rate the danger level</label>
+      <input type="range" id="dangerRange" class="range" min="1" max="10" value="5" title="Danger level: 5">
+      <div class="range-value">Danger level: <span id="dangerValue">5</span>/10</div>
+
+
+      <!-- STATUS -->
       <select id="status">
         <option value="active">Active</option>
         <option value="resolved">Resolved</option>
@@ -81,15 +123,16 @@
 
     </div>
 
+    <!-- FOOTER -->
     <div class="modal-footer">
-      <button class="save-btn" onclick="addIncident()"> SAVE INCIDENT
+      <button class="save-btn" onclick="addIncident()">
+        SEND UNITS
       </button>
     </div>
 
   </div>
 
 </div>
-
 <script>
 /* =========================
    📞 CALL
@@ -287,6 +330,52 @@ function trackLocation(location) {
         type: "TRACK_LOCATION",
         location: location
     }, "*");
+}
+
+function trackCurrentLocation() {
+    const locationInput = document.getElementById("location");
+
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by this browser.");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            locationInput.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+        },
+        () => {
+            alert("Unable to get current location.");
+        }
+    );
+}
+
+function setupSelectableButtonGroup(groupId) {
+    const group = document.getElementById(groupId);
+    if (!group) return;
+
+    const buttons = group.querySelectorAll("button");
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            buttons.forEach((btn) => btn.classList.remove("active"));
+            button.classList.add("active");
+        });
+    });
+}
+
+setupSelectableButtonGroup("unitGroup");
+setupSelectableButtonGroup("victimGroup");
+setupSelectableButtonGroup("aggressorGroup");
+
+const dangerRange = document.getElementById("dangerRange");
+const dangerValue = document.getElementById("dangerValue");
+
+if (dangerRange && dangerValue) {
+    dangerRange.addEventListener("input", function() {
+        dangerValue.textContent = this.value;
+        this.title = `Danger level: ${this.value}`;
+    });
 }
 
 </script>
