@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emergency Hotlines</title>
+
+<link rel="stylesheet" href="../css/responders.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2>Responders Hotlines</h2>
+
+    <button class="add-btn" onclick="openModal()">
+        <i class="fa fa-plus"></i> Add Hotline
+    </button>
+</div>
+
+<!-- 🔍 CONTROLS -->
+<div class="controls">
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search...">
+        <i class="fa fa-search"></i>
+    </div>
+
+    <div class="custom-select" id="customSelect">
+        <div class="select-selected">All</div>
+
+        <div class="select-items">
+            <div data-value="all">All</div>
+            <div data-value="Police">Police</div>
+            <div data-value="Fire">Fire</div>
+            <div data-value="Rescue">Rescue</div>
+            <div data-value="Medical">Medical</div>
+        </div>
+    </div>
+
+</div>
+
+<div class="hotline-grid" id="hotlineContainer">
+
+    <div class="hotline-card" data-name="plp clinic" data-type="Medical">
+        <div class="icon"><i class="fa fa-hospital"></i></div>
+        <h3>PLP Clinic</h3>
+        <p>(02) 8642-1234</p>
+        <span>MEDICAL SERVICES</span>
+        <small>Head: Dr. Santos</small>
+
+        <button class="call-btn" onclick="callHotline('(02)86421234')">
+            <i class="fa fa-phone"></i>
+        </button>
+    </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="hotlineModal">
+    <div class="modal-content emergency">
+
+        <div class="modal-header">
+            <h3>Add Hotline</h3>
+            <span class="close" onclick="closeModal()">&times;</span>
+        </div>
+
+        <div class="modal-body">
+
+            <input type="text" id="orgName" placeholder="Organization Name">
+            <input type="text" id="contact" placeholder="Contact Number">
+
+            <!-- ✅ FIXED (ONLY SELECT) -->
+            <select id="type">
+                <option value="">Select Service Type</option>
+                <option>Police</option>
+                <option>Fire</option>
+                <option>Rescue</option>
+                <option>Medical</option>
+            </select>
+
+            <input type="text" id="head" placeholder="Head of Organization">
+
+            <button class="save-btn" onclick="addHotline()">
+                Save Hotline
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+/* CALL */
+function callHotline(number) {
+    window.location.href = "tel:" + number;
+}
+
+/* MODAL */
+function openModal() {
+    document.getElementById("hotlineModal").classList.add("show");
+}
+function closeModal() {
+    document.getElementById("hotlineModal").classList.remove("show");
+}
+
+/* ADD HOTLINE */
+function addHotline() {
+
+    const name = document.getElementById("orgName").value;
+    const contact = document.getElementById("contact").value;
+    const type = document.getElementById("type").value;
+    const head = document.getElementById("head").value;
+
+    if (!name || !contact || !type || !head) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    const container = document.getElementById("hotlineContainer");
+
+    const card = document.createElement("div");
+    card.className = "hotline-card";
+
+    /* 🔥 IMPORTANT FOR FILTER */
+    card.setAttribute("data-name", name.toLowerCase());
+    card.setAttribute("data-type", type);
+
+    card.innerHTML = `
+        <div class="icon"><i class="fa fa-phone"></i></div>
+        <h3>${name}</h3>
+        <p>${contact}</p>
+        <span>${type}</span>
+        <small>Head: ${head}</small>
+
+        <button class="call-btn" onclick="callHotline('${contact}')">
+            <i class="fa fa-phone"></i>
+        </button>
+    `;
+
+    container.appendChild(card);
+
+    closeModal();
+
+    document.getElementById("orgName").value = "";
+    document.getElementById("contact").value = "";
+    document.getElementById("type").value = "";
+    document.getElementById("head").value = "";
+}
+
+/* FILTER DROPDOWN */
+const select = document.getElementById("customSelect");
+const selected = select.querySelector(".select-selected");
+const items = select.querySelector(".select-items");
+
+selected.addEventListener("click", () => {
+    select.classList.toggle("active");
+});
+
+items.querySelectorAll("div").forEach(option => {
+    option.addEventListener("click", () => {
+        selected.innerText = option.innerText;
+        select.classList.remove("active");
+
+        filterHotlines(option.dataset.value);
+    });
+});
+
+/* SEARCH */
+document.getElementById("searchInput").addEventListener("input", () => {
+    filterHotlines();
+});
+
+/* FILTER FUNCTION */
+function filterHotlines(type = "all") {
+
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const cards = document.querySelectorAll("#hotlineContainer .hotline-card");
+
+    cards.forEach(card => {
+
+        const name = card.dataset.name || "";
+        const cardType = card.dataset.type || "";
+
+        const matchSearch = name.includes(search);
+        const matchFilter = type === "all" || cardType === type;
+
+        card.style.display = (matchSearch && matchFilter) ? "block" : "none";
+
+    });
+}
+
+</script>
+
+</body>
+</html>
