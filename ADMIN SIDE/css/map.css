@@ -162,6 +162,12 @@ select:focus {
   accent-color: var(--primary);
 }
 
+.range-value {
+    font-size: 12px;
+    opacity: 0.85;
+    margin-bottom: 10px;
+}
+
 /* FOOTER */
 .panel-footer {
   display: flex;

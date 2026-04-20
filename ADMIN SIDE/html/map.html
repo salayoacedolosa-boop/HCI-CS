@@ -74,8 +74,9 @@
     </div>
 
     <!-- RANGE -->
-    <label>Rate the danger level</label>
-    <input type="range" class="range">
+    <label for="dangerRange">Rate the danger level</label>
+      <input type="range" id="dangerRange" class="range" min="1" max="10" value="5" title="Danger level: 5">
+      <div class="range-value">Danger level: <span id="dangerValue">5</span>/10</div>
 
     <div class="panel-footer">
         <button class="send-btn">Send Units</button>
@@ -110,6 +111,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 });
+
+const dangerRange = document.getElementById("dangerRange");
+const dangerValue = document.getElementById("dangerValue");
+
+if (dangerRange && dangerValue) {
+    dangerRange.addEventListener("input", function() {
+        dangerValue.textContent = this.value;
+        this.title = `Danger level: ${this.value}`;
+    });
+}
 
 </script>
 
