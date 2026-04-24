@@ -47,11 +47,12 @@ body {
 .input-group {
   position: relative;
   margin-bottom: 20px;
+  width: 340px;
 }
 
 .input-group input {
   width: 100%;
-  padding: 14px;
+  padding: 14px 12px;
   border-radius: 10px;
   border: none;
   outline: none;

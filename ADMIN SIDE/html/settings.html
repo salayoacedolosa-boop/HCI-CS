@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Settings</title>
+
+<link rel="stylesheet" href="../css/settings.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="header">
+    <h2> System Settings</h2>
+</div>
+
+<div class="settings-grid">
+
+    <!-- PROFILE -->
+    <div class="settings-card">
+        <h3>Admin Profile</h3>
+
+        <label>Full Name</label>
+        <input type="text" value="Admin User">
+
+        <label>Email</label>
+        <input type="email" value="admin@plp.edu.ph">
+
+        <button class="save-btn">Save Changes</button>
+    </div>
+
+    <!-- SYSTEM -->
+    <div class="settings-card">
+        <h3>System Preferences</h3>
+
+        <label>Default Map Mode</label>
+        <select>
+            <option>Satellite</option>
+            <option selected>Dark Mode</option>
+            <option>Standard</option>
+        </select>
+
+        <label>Notification Sound</label>
+        <select>
+            <option>Enabled</option>
+            <option>Disabled</option>
+        </select>
+
+        <button class="save-btn">Apply</button>
+    </div>
+
+    <!-- SECURITY -->
+    <div class="settings-card">
+        <h3>Security</h3>
+
+        <label>Change Password</label>
+            <div class="password-field">
+                <input type="password" id="password" placeholder="New Password">
+                <i class="fa fa-eye toggle-password" data-target="password"></i>
+            </div>
+
+            <label>Confirm Password</label>
+            <div class="password-field">
+                <input type="password" id="confirmPassword" placeholder="Confirm Password">
+                <i class="fa fa-eye toggle-password" data-target="confirmPassword"></i>
+            </div>
+
+        <button class="save-btn">Update Password</button>
+    </div>
+
+    <!-- SYSTEM STATUS -->
+    <div class="settings-card status-card">
+        <h3>System Status</h3>
+
+        <div class="status-item">
+            <span>Database</span>
+            <span class="badge danger">Offline</span>
+        </div>
+
+        <div class="status-item">
+            <span>Map Service</span>
+            <span class="badge danger">Offline</span>
+        </div>
+
+        <div class="status-item">
+            <span>Emergency API</span>
+            <span class="badge danger">Offline</span>
+        </div>
+    </div>
+
+    <!-- SHORTCUT KEYS (FIXED + EDITABLE) -->
+    <div class="settings-card">
+        <h3><i class="fa fa-keyboard"></i> Shortcut Keys</h3>
+
+        <div class="shortcut-item">
+            <span>Add Incident</span>
+            <input class="key-input" data-action="add" readonly>
+        </div>
+
+        <div class="shortcut-item">
+            <span>Save Incident</span>
+            <input class="key-input" data-action="save" readonly>
+        </div>
+
+        <div class="shortcut-item">
+            <span>Track Location</span>
+            <input class="key-input" data-action="track" readonly>
+        </div>
+
+        <div class="shortcut-item">
+            <span>Close / Exit</span>
+            <input class="key-input" data-action="close" readonly>
+        </div>
+
+        <button class="save-btn">Save Changes</button>
+
+    </div>
+
+    
+
+</div>
+
+<!-- 🔥 SHORTCUT EDIT SCRIPT -->
+<script>
+
+/* DEFAULT SHORTCUTS */
+let shortcuts = JSON.parse(localStorage.getItem("shortcuts")) || {
+    add: "Ctrl + A",
+    save: "Enter",
+    track: "Ctrl + L",
+    close: "Escape"
+};
+
+/* LOAD VALUES */
+document.querySelectorAll(".key-input").forEach(input => {
+    input.value = shortcuts[input.dataset.action];
+});
+
+/* CAPTURE NEW SHORTCUT */
+document.querySelectorAll(".key-input").forEach(input => {
+
+    input.addEventListener("focus", () => {
+        input.value = "Press key...";
+    });
+
+    input.addEventListener("keydown", (e) => {
+        e.preventDefault();
+
+        let keys = [];
+
+        if (e.ctrlKey) keys.push("Ctrl");
+        if (e.shiftKey) keys.push("Shift");
+        if (e.altKey) keys.push("Alt");
+
+        if (!["Control","Shift","Alt"].includes(e.key)) {
+            keys.push(e.key.length === 1 ? e.key.toUpperCase() : e.key);
+        }
+
+        const combo = keys.join(" + ");
+
+        input.value = combo;
+        shortcuts[input.dataset.action] = combo;
+
+        localStorage.setItem("shortcuts", JSON.stringify(shortcuts));
+
+        alert("Shortcut updated: " + combo); // 🔥 alert added
+
+        input.blur();
+    });
+
+});
+
+/* SHOW / HIDE PASSWORD */
+document.querySelectorAll(".toggle-password").forEach(icon => {
+
+    icon.addEventListener("click", () => {
+
+        const input = document.getElementById(icon.dataset.target);
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("fa-eye");
+            icon.classList.add("fa-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("fa-eye-slash");
+            icon.classList.add("fa-eye");
+        }
+
+    });
+
+});
+
+</script>
+
+</body>
+</html>

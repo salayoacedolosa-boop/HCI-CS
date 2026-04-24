@@ -1,0 +1,216 @@
+:root {
+  --primary: #2e793e;
+  --primary-light: rgba(46, 121, 62, 0.16);
+  --primary-soft: rgba(46, 121, 62, 0.08);
+  --danger: #dc3545;
+  --success: #28a745;
+}
+
+/* BODY */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0f1a13, #020617);
+  color: white;
+  padding: 25px;
+}
+
+/* HEADER */
+.header {
+  margin-bottom: 20px;
+}
+
+.header h2 {
+  margin: 0;
+  color: white;
+}
+
+/* GRID */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+.settings-card {
+  background: rgba(255,255,255,0.04);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.settings-card:hover {
+  box-shadow: 0 0 25px rgba(46,121,62,0.2);
+}
+
+/* TITLE */
+.settings-card h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: var(--primary);
+}
+
+/* LABEL */
+.settings-card label {
+  font-size: 12px;
+  opacity: 0.7;
+  display: block;
+  margin-bottom: 5px;
+}
+
+/* INPUT */
+/* INPUT + SELECT FIX */
+.settings-card input,
+.settings-card select {
+  width: 100%; /* 🔥 FIX alignment */
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 12px;
+
+  background: rgba(255,255,255,0.05);
+  color: white;
+
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* REMOVE DEFAULT ARROW */
+.settings-card select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* 🔥 CUSTOM GREEN ARROW */
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%232e793e' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+
+  padding-right: 35px; /* space for arrow */
+}
+
+/* SELECT FIX */
+.settings-card select option {
+  background: #0b1421;
+  color: white;
+}
+
+/* BUTTON */
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2e793e, #4ec710);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.save-btn:hover {
+  transform: scale(1.02);
+}
+
+/* STATUS */
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* BADGE */
+.badge {
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+}
+
+.badge.success {
+  background: var(--success);
+}
+
+.badge.danger {
+  background: var(--danger);
+}
+
+/* 🔥 SHORTCUT ITEM FIX */
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 10px;
+  margin-bottom: 8px;
+
+  border-radius: 10px;
+  background: rgba(255,255,255,0.03);
+}
+
+/* EDITABLE KEY INPUT */
+.key-input {
+  width: 110px;
+  text-align: center;
+
+  background: var(--primary-soft);
+  color: var(--primary);
+
+  border: none;
+  border-radius: 6px;
+  padding: 5px;
+
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.key-input:focus {
+  outline: none;
+  background: var(--primary);
+  color: white;
+}
+
+/* PASSWORD FIELD */
+.password-field {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+/* INPUT FULL WIDTH */
+.password-field input {
+  width: 100%;
+  padding: 12px 40px 12px 12px; /* space for icon */
+}
+
+/* EYE ICON */
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.toggle-password:hover {
+  opacity: 1;
+}
+
+.fa, .fa-brands, .fa-classic, .fa-regular, .fa-sharp, .fa-solid, .fab, .far, .fas {
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    display: var(--fa-display, inline-block);
+    font-style: normal;
+    font-variant: normal;
+    line-height: 1;
+    text-rendering: auto;
+    top:20px
+}

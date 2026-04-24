@@ -1,0 +1,328 @@
+:root {
+  --primary: #2e793e;
+  --primary-light: rgba(46, 121, 62, 0.16);
+  --primary-soft: rgba(46, 121, 62, 0.08);
+}
+
+/* BODY */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0f1a13, #020617);
+  color: white;
+  padding: 25px;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.header h2 {
+  margin: 0;
+}
+
+/* ADD BUTTON */
+.add-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.add-btn:hover {
+  background: #245a2f;
+}
+
+/* =========================
+   🔍 SEARCH + FILTER
+========================= */
+
+.controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 55px;
+  margin-bottom: 20px;
+}
+
+/* SEARCH */
+.search-box {
+  position: relative;
+  width: 260px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 35px 10px 12px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 12px;
+  background: rgba(255,255,255,0.05);
+  color: white;
+}
+
+.search-box input:focus {
+  box-shadow: 0 0 8px rgba(46,121,62,0.4);
+}
+
+.search-box i {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+/* FILTER */
+.custom-select {
+  position: relative;
+  width: 140px;
+  font-size: 12px;
+}
+
+.select-selected {
+  background: rgba(255,255,255,0.05);
+  padding: 10px 30px 10px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+}
+
+/* ARROW */
+.select-selected::after {
+  content: "\f078";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--primary);
+  transition: 0.3s;
+}
+
+/* ROTATE */
+.custom-select.active .select-selected::after {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* DROPDOWN */
+.select-items {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background: #0b0f1a;
+  border-radius: 8px;
+  overflow: hidden;
+  display: none;
+  z-index: 999;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.custom-select.active .select-items {
+  display: block;
+}
+
+/* OPTIONS */
+.select-items div {
+  padding: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.select-items div:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* =========================
+   📦 GRID
+========================= */
+
+.hotline-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+/* CARD */
+.hotline-card {
+  display: block;
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  padding: 25px 20px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  position: relative;
+  transition: 0.3s;
+}
+
+.hotline-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(46,121,62,0.2);
+}
+
+/* ICON */
+.hotline-card .icon {
+  width: 70px;
+  height: 70px;
+  margin: auto;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--primary);
+  margin-bottom: 15px;
+}
+
+/* TEXT */
+.hotline-card h3 { margin: 5px 0; }
+.hotline-card p { margin: 5px 0; font-weight: bold; }
+.hotline-card span { font-size: 11px; opacity: 0.6; }
+.hotline-card small { display:block; margin-top:5px; font-size:11px; opacity:0.6; }
+
+/* CALL BUTTON */
+.call-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  border: none;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.call-btn:hover {
+  background: #245a2f;
+}
+
+/* =========================
+   📦 MODAL
+========================= */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 9999;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transition: 0.2s;
+}
+
+.modal.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+}
+
+.modal-content {
+  width: 350px;
+  background: rgba(10,20,15,0.95);
+  padding: 20px;
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* HEADER */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.close {
+  cursor: pointer;
+  font-size: 18px;
+}
+
+/* INPUT */
+/* 🔥 UNIFY INPUT + SELECT STYLE */
+.modal-body input,
+.modal-body select {
+    margin-bottom: 12px;
+  width: 100%;
+  height: 48px; /* 👈 FIX HEIGHT */
+  
+  padding: 12px 14px; /* 👈 REMOVE TOP/BOTTOM padding difference */
+  
+  border-radius: 12px;
+  border: none;
+
+  background: rgba(255,255,255,0.05);
+  color: white;
+
+  font-size: 14px;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center; /* 👈 CENTER TEXT */
+}
+
+/* 🔥 FIX SELECT TEXT ALIGNMENT */
+.modal-body select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  padding-right: 40px; /* space for arrow */
+}
+
+/* 🔥 CUSTOM ARROW FIX */
+.modal-body select {
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%232e793e' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+/* SELECT OPTIONS */
+.modal-body select option {
+  background: #0b1421;
+  color: white;
+}
+
+/* SAVE BUTTON */
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #2e793e, #4ec710);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  transform: scale(1.02);
+}

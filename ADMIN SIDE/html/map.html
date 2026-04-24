@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Emergency Command Map</title>
+
+<link rel="stylesheet" href="../css/map.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+<!-- GOOGLE MAP -->
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+</head>
+
+<body>
+
+<!-- MAP -->
+<div id="map"></div>
+
+<!-- RIGHT PANEL -->
+<div class="panel">
+
+    <div class="panel-header">
+        <h3>Sending Units</h3>
+        <span>#01</span>
+    </div>
+
+     <!-- CALLER -->
+      <label for="name">Caller Information</label>
+      <input type="text" id="name" placeholder="Caller Name">
+           <!-- CONTACT -->
+      <input type="text" id="contact" placeholder="Contact Number">
+
+
+    <!-- UNIT -->
+    <label>Which unit to send?</label>
+    <div class="btn-group" id="unitGroup">
+        <button class="active">Police</button>
+        <button>Fire</button>
+        <button>Rescue</button>
+        <button>Medical</button>
+    </div>
+
+    <!-- TYPE -->
+    <label>Type of incident</label>
+    <select>
+        <option>Fire</option>
+        <option>Medical</option>
+        <option>Accident</option>
+        <option>Security</option>
+    </select>
+
+    <!-- PROBLEM -->
+    <label>What is the problem?</label>
+    <input type="text" placeholder="Describe incident...">
+
+    <hr>
+
+    <!-- VICTIMS -->
+    <label>How many victims?</label>
+    <div class="btn-group small">
+        <button>No one</button>
+        <button class="active">1-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+    </div>
+
+    <!-- AGGRESSORS -->
+    <label>How many aggressors?</label>
+    <div class="btn-group small">
+        <button>Single</button>
+        <button class="active">2-4</button>
+        <button>5-9</button>
+        <button>Over 10</button>
+    </div>
+
+    <!-- RANGE -->
+    <label for="dangerRange">Rate the danger level</label>
+      <input type="range" id="dangerRange" class="range" min="1" max="10" value="5" title="Danger level: 5">
+      <div class="range-value">Danger level: <span id="dangerValue">5</span>/10</div>
+
+    <div class="panel-footer">
+        <button class="send-btn">Send Units</button>
+    </div>
+
+</div>
+
+<script>
+
+let map;
+
+/* MAP INIT */
+function initMap() {
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 14.5764, lng: 121.0851 },
+        zoom: 17,
+        styles: [
+            { elementType: "geometry", stylers: [{ color: "#0f1a13" }] },
+            { featureType: "road", stylers: [{ color: "#1e293b" }] },
+            { featureType: "water", stylers: [{ color: "#020617" }] }
+        ]
+    });
+}
+
+/* BUTTON ACTIVE */
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".btn-group button").forEach(btn => {
+        btn.addEventListener("click", function () {
+            const group = this.parentElement;
+            group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+});
+
+const dangerRange = document.getElementById("dangerRange");
+const dangerValue = document.getElementById("dangerValue");
+
+if (dangerRange && dangerValue) {
+    dangerRange.addEventListener("input", function() {
+        dangerValue.textContent = this.value;
+        this.title = `Danger level: ${this.value}`;
+    });
+}
+
+</script>
+
+</body>
+</html>
