@@ -36,49 +36,13 @@
           </div>
         </div>
 
-        <!-- HEADER -->
-        <h1>
-          HELP IS <br />
-          ON THEIR WAY
-        </h1>
-        <p class="sub">Speak calmly. Tell us what happened</p>
-
-        <!-- SOS BUTTON -->
-        <div class="sos-container">
-          <div class="sos-button" id="sosBtn">SOS</div>
-          <p class="hint">Hold for 3 seconds to call responders</p>
-          <p
-            id="sosProgress"
-            style="
-              display: none;
-              font-size: 10px;
-              color: #a83232;
-              margin-top: 10px;
-            "
-          ></p>
-        </div>
-
-        <!-- SWIPEABLE CARDS -->
-        <div class="cards">
-          <div class="card" onclick="triggerEmergency('injury')">
-            <i class="fa-solid fa-user-injured"></i>
-            <p>I am <b>INJURED</b></p>
-          </div>
-
-          <div class="card" onclick="triggerEmergency('fire')">
-            <i class="fa-solid fa-fire"></i>
-            <p>There's a <b>FIRE</b></p>
-          </div>
-
-          <div class="card" onclick="triggerEmergency('crime')">
-            <i class="fa-solid fa-shield-halved"></i>
-            <p>There's a <b>CRIME</b></p>
-          </div>
-
-          <div class="card" onclick="triggerEmergency('accident')">
-            <i class="fa-solid fa-car-crash"></i>
-            <p>There's a <b>ACCIDENT</b></p>
-          </div>
+        <div class="panel-shell">
+          <iframe
+            id="panelFrame"
+            class="panel-frame"
+            title="Emergency panel"
+            src="home-pane.html"
+          ></iframe>
         </div>
 
         <!-- BOTTOM NAV -->
@@ -141,18 +105,31 @@
       // Global state
       let currentUser = null;
       let currentLocation = null;
-      let sosTimer = null;
-      let sosInProgress = false;
-      const SOS_HOLD_DURATION = 3000; // 3 seconds
+      const panelFrame = document.getElementById("panelFrame");
+      const panelRoutes = {
+        home: "home-pane.html",
+        history: "history-pane.html",
+        contact: "contact-pane.html",
+        settings: "settings-pane.html",
+      };
 
       // Make functions globally available
       window.goToProfile = goToProfile;
       window.getLocation = getLocation;
       window.triggerEmergency = triggerEmergency;
+      window.triggerSOS = triggerSOS;
       window.goHome = goHome;
       window.goHistory = goHistory;
       window.goContact = goContact;
       window.goSettings = goSettings;
+      window.appShell = {
+        triggerEmergency,
+        triggerSOS,
+        goHome,
+        goHistory,
+        goContact,
+        goSettings,
+      };
 
       /**
        * Initialize auth state listener
@@ -171,65 +148,6 @@
           }
         });
       }
-
-      /**
-       * SOS Button - Mobile-friendly hold logic
-       */
-      const sosBtn = document.getElementById("sosBtn");
-      const sosProgress = document.getElementById("sosProgress");
-
-      // Handle both touch and mouse events
-      function startSOSTimer() {
-        if (sosInProgress) return;
-
-        sosInProgress = true;
-        sosProgress.style.display = "block";
-        sosBtn.classList.add("holding");
-        let elapsed = 0;
-
-        sosTimer = setInterval(() => {
-          elapsed += 100;
-          sosProgress.textContent = `${Math.floor(elapsed / 1000)}.${Math.floor((elapsed % 1000) / 100)}s`;
-
-          if (elapsed >= SOS_HOLD_DURATION) {
-            clearInterval(sosTimer);
-            triggerSOS();
-          }
-        }, 100);
-      }
-
-      function cancelSOSTimer() {
-        if (sosTimer) {
-          clearInterval(sosTimer);
-          sosTimer = null;
-        }
-        sosInProgress = false;
-        sosProgress.style.display = "none";
-        sosBtn.classList.remove("holding");
-      }
-
-      function resetSOSState() {
-        cancelSOSTimer();
-        sosProgress.textContent = "";
-      }
-
-      // Mouse events
-      sosBtn.addEventListener("mousedown", startSOSTimer);
-      sosBtn.addEventListener("mouseup", cancelSOSTimer);
-      sosBtn.addEventListener("mouseleave", cancelSOSTimer);
-
-      // Touch events (for mobile)
-      sosBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        startSOSTimer();
-      });
-
-      sosBtn.addEventListener("touchend", (e) => {
-        e.preventDefault();
-        cancelSOSTimer();
-      });
-
-      sosBtn.addEventListener("touchcancel", cancelSOSTimer);
 
       /**
        * Trigger SOS incident
@@ -253,8 +171,7 @@
               "SOS ACTIVATED",
               "Emergency responders have been notified of your location.",
               () => {
-                window.location.href =
-                  "history.html?incidentId=" + result.incidentId;
+                loadPanel("history");
               },
             );
           } else {
@@ -263,8 +180,6 @@
         } catch (error) {
           console.error("SOS error:", error);
           showToast("Error: " + error.message, "error");
-        } finally {
-          resetSOSState();
         }
       }
 
@@ -317,8 +232,7 @@
           );
 
           if (result.success) {
-            window.location.href =
-              "history.html?type=" + type + "&incidentId=" + result.incidentId;
+            loadPanel("history");
           } else {
             showToast("Failed to create incident: " + result.error, "error");
           }
@@ -336,19 +250,31 @@
       }
 
       function goHome() {
-        window.location.href = "home.html";
+        loadPanel("home");
       }
 
       function goHistory() {
-        window.location.href = "history.html";
+        loadPanel("history");
       }
 
       function goContact() {
-        window.location.href = "contact.html";
+        loadPanel("contact");
       }
 
       function goSettings() {
-        window.location.href = "settings.html";
+        loadPanel("settings");
+      }
+
+      function loadPanel(route) {
+        const normalizedRoute = panelRoutes[route] ? route : "home";
+        panelFrame.src = panelRoutes[normalizedRoute];
+        setActiveMenu(normalizedRoute);
+
+        const nextUrl =
+          normalizedRoute === "home"
+            ? "home.html"
+            : `home.html?panel=${normalizedRoute}`;
+        window.history.replaceState({ route: normalizedRoute }, "", nextUrl);
       }
 
       /**
@@ -369,18 +295,14 @@
           );
         }
 
-        const page = window.location.pathname
-          .split("/")
-          .pop()
-          .split(".")
-          .shift();
-        setActiveMenu(page || "home");
+        const route = new URLSearchParams(window.location.search).get("panel");
+        loadPanel(route || "home");
 
         document
           .querySelectorAll(".bottom-nav [data-route]")
           .forEach((item) => {
             item.addEventListener("click", () => {
-              setActiveMenu(item.dataset.route);
+              loadPanel(item.dataset.route);
             });
           });
       });
