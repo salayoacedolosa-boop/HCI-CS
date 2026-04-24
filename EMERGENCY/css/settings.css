@@ -13,34 +13,30 @@
 
 body {
   margin: 0;
-  background: #1e1e1e;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-family: 'Inter', sans-serif;
+  min-height: 100dvh;
+  background: #edf4ee;
+  font-family: "Inter", sans-serif;
 }
 
 .phone-frame {
-  width: 350px;
-  height: 620px;
-  background-color: black;
-  border-radius: 30px;
-  padding: 10px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0 auto;
 }
 
 .screen {
   width: 100%;
-  height: 100%;
   background-color: #f5f5f5;
-  border-radius: 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
-  padding: 12px;
+  padding: 16px;
   box-sizing: border-box;
+}
+
+.phone-frame > .screen {
+  min-height: 100dvh;
 }
 
 /* TOP BAR */
@@ -60,7 +56,9 @@ body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
   padding: 4px;
   border-radius: 14px;
 }
@@ -292,7 +290,9 @@ input:checked + .slider:before {
   height: 42px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .bottom-nav div:hover {
@@ -356,7 +356,7 @@ input:checked + .slider:before {
 .high-contrast .sos-button {
   background: #ff0000;
   border: 3px solid #000000;
-  box-shadow: 0 0 10px rgba(0,0,0,0.8);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
 }
 
 .high-contrast .card {
@@ -405,25 +405,29 @@ input:checked + .slider:before {
 /* Color Blind Friendly */
 .color-blind .sos-button {
   background: #ff6b35; /* More distinguishable red-orange */
-  box-shadow: 0 0 20px rgba(255,107,53,0.6);
+  box-shadow: 0 0 20px rgba(255, 107, 53, 0.6);
 }
 
-.color-blind .card:nth-child(1) { /* Injury */
+.color-blind .card:nth-child(1) {
+  /* Injury */
   border-color: #ff6b35;
   color: #ff6b35;
 }
 
-.color-blind .card:nth-child(2) { /* Fire */
+.color-blind .card:nth-child(2) {
+  /* Fire */
   border-color: #ff0000;
   color: #ff0000;
 }
 
-.color-blind .card:nth-child(3) { /* Crime */
+.color-blind .card:nth-child(3) {
+  /* Crime */
   border-color: #0000ff;
   color: #0000ff;
 }
 
-.color-blind .card:nth-child(4) { /* Accident */
+.color-blind .card:nth-child(4) {
+  /* Accident */
   border-color: #800080;
   color: #800080;
 }

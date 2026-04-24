@@ -9,34 +9,30 @@
 
 body {
   margin: 0;
-  background: #1e1e1e;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  font-family: 'Inter', sans-serif;
+  min-height: 100dvh;
+  background: #edf4ee;
+  font-family: "Inter", sans-serif;
 }
 
 .phone-frame {
-  width: 350px;
-  height: 620px;
-  background-color: black;
-  border-radius: 30px;
-  padding: 10px;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  width: 100%;
+  min-height: 100dvh;
+  margin: 0 auto;
 }
 
 .screen {
   width: 100%;
-  height: 100%;
   background-color: #f5f5f5;
-  border-radius: 20px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
-  padding: 12px;
+  padding: 16px;
   box-sizing: border-box;
+}
+
+.phone-frame > .screen {
+  min-height: 100dvh;
 }
 
 /* TOP BAR */
@@ -56,7 +52,9 @@ body {
   align-items: center;
   gap: 10px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
   padding: 4px;
   border-radius: 14px;
 }
@@ -132,7 +130,9 @@ p {
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
   box-shadow: 0 2px 8px rgba(46, 121, 62, 0.2);
 }
 
@@ -185,14 +185,16 @@ p {
   padding: 16px 12px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
   text-align: center;
   position: relative;
 }
 
 .contact-item:hover {
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
 }
 
@@ -273,7 +275,9 @@ p {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
   font-size: 12px;
 }
 
@@ -290,7 +294,7 @@ p {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   justify-content: center;
   align-items: center;
   z-index: 1000;
@@ -303,7 +307,7 @@ p {
   max-width: 300px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .modal-header {
@@ -408,7 +412,9 @@ p {
   height: 42px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
 }
 
 .bottom-nav div:hover {

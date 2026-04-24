@@ -3,6 +3,7 @@ import { resolve } from "path";
 
 export default defineConfig({
   root: resolve(__dirname, "EMERGENCY/html"),
+  envDir: __dirname,
   build: {
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true,
