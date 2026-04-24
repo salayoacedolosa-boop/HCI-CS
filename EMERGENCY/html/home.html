@@ -1,153 +1,366 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Emergency Response</title>
+    <title>Emergency Response</title>
 
-  <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/home.css" />
 
-  <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Google Font -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
 
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Font Awesome Icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="phone-frame">
+      <div class="screen">
+        <!-- TOP BAR -->
+        <div class="top-bar">
+          <div class="profile" onclick="goToProfile()">
+            <i class="fa-solid fa-user"></i>
+            <span id="userDisplay">Login using your PLP Account</span>
+          </div>
 
-</head>
-<body>
+          <div class="location" onclick="getLocation()">
+            <span id="locationDisplay">See your Location</span>
+            <i class="fa-solid fa-location-dot"></i>
+          </div>
+        </div>
 
-<div class="phone-frame">
-  <div class="screen">
+        <!-- HEADER -->
+        <h1>
+          HELP IS <br />
+          ON THEIR WAY
+        </h1>
+        <p class="sub">Speak calmly. Tell us what happened</p>
 
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <div class="profile" onclick="goToProfile()">
-        <i class="fa-solid fa-user"></i>
-        <span>Login using your PLP Account</span>
-      </div>
+        <!-- SOS BUTTON -->
+        <div class="sos-container">
+          <div class="sos-button" id="sosBtn">SOS</div>
+          <p class="hint">Hold for 3 seconds to call responders</p>
+          <p
+            id="sosProgress"
+            style="
+              display: none;
+              font-size: 10px;
+              color: #a83232;
+              margin-top: 10px;
+            "
+          ></p>
+        </div>
 
-      <div class="location" onclick="getLocation()">
-        <span>See your Location</span>
-        <i class="fa-solid fa-location-dot"></i>
+        <!-- SWIPEABLE CARDS -->
+        <div class="cards">
+          <div class="card" onclick="triggerEmergency('injury')">
+            <i class="fa-solid fa-user-injured"></i>
+            <p>I am <b>INJURED</b></p>
+          </div>
+
+          <div class="card" onclick="triggerEmergency('fire')">
+            <i class="fa-solid fa-fire"></i>
+            <p>There's a <b>FIRE</b></p>
+          </div>
+
+          <div class="card" onclick="triggerEmergency('crime')">
+            <i class="fa-solid fa-shield-halved"></i>
+            <p>There's a <b>CRIME</b></p>
+          </div>
+
+          <div class="card" onclick="triggerEmergency('accident')">
+            <i class="fa-solid fa-car-crash"></i>
+            <p>There's a <b>ACCIDENT</b></p>
+          </div>
+        </div>
+
+        <!-- BOTTOM NAV -->
+        <div class="bottom-nav">
+          <div class="active" data-route="home" onclick="goHome()">
+            <i class="fa-solid fa-house"></i>
+          </div>
+          <div data-route="history" onclick="goHistory()">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div data-route="contact" onclick="goContact()">
+            <i class="fa-solid fa-address-book"></i>
+          </div>
+          <div data-route="settings" onclick="goSettings()">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- HEADER -->
-    <h1>HELP IS <br> ON THEIR WAY</h1>
-    <p class="sub">Speak calmly. Tell us what happened</p>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+      import {
+        createSOSIncident,
+        createEmergencyIncident,
+      } from "../api/incidents.js";
+      import { getDeviceLocation } from "../api/location.js";
+      import { showToast, showAlertModal } from "../api/notifications.js";
 
-    <!-- SOS BUTTON -->
-    <div class="sos-container">
-      <div class="sos-button" id="sosBtn">
-        SOS
-      </div>
-      <p class="hint">Hold for 3 seconds to call responders</p>
-    </div>
+      // Firebase Config from environment variables
+      const firebaseConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      };
 
-    <!-- SWIPEABLE CARDS -->
-    <div class="cards">
-      <div class="card" onclick="triggerEmergency('injury')">
-        <i class="fa-solid fa-user-injured"></i>
-        <p>I am <b>INJURED</b></p>
-      </div>
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
 
-      <div class="card" onclick="triggerEmergency('fire')">
-        <i class="fa-solid fa-fire"></i>
-        <p>There's a <b>FIRE</b></p>
-      </div>
+      // Global state
+      let currentUser = null;
+      let currentLocation = null;
+      let sosTimer = null;
+      let sosInProgress = false;
+      const SOS_HOLD_DURATION = 3000; // 3 seconds
 
-      <div class="card" onclick="triggerEmergency('crime')">
-        <i class="fa-solid fa-shield-halved"></i>
-        <p>There's a <b>CRIME</b></p>
-      </div>
+      // Make functions globally available
+      window.goToProfile = goToProfile;
+      window.getLocation = getLocation;
+      window.triggerEmergency = triggerEmergency;
+      window.goHome = goHome;
+      window.goHistory = goHistory;
+      window.goContact = goContact;
+      window.goSettings = goSettings;
 
-      <div class="card" onclick="triggerEmergency('accident')">
-        <i class="fa-solid fa-car-crash"></i>
-        <p>There's a <b>ACCIDENT</b></p>
-      </div>
-    </div>
+      /**
+       * Initialize auth state listener
+       */
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById("userDisplay").textContent =
+            `${user.displayName || user.email}`;
+          console.log("User logged in:", user.email);
+        } else {
+          currentUser = null;
+          document.getElementById("userDisplay").textContent =
+            "Login using your PLP Account";
+        }
+      });
 
-    <!-- BOTTOM NAV -->
-    <div class="bottom-nav">
-      <div class="active" data-route="home" onclick="goHome()"><i class="fa-solid fa-house"></i></div>
-      <div data-route="history" onclick="goHistory()"><i class="fa-solid fa-clock-rotate-left"></i></div>
-      <div data-route="contact" onclick="goContact()"><i class="fa-solid fa-address-book"></i></div>
-      <div data-route="settings" onclick="goSettings()"><i class="fa-solid fa-gear"></i></div>
-    </div>
+      /**
+       * SOS Button - Mobile-friendly hold logic
+       */
+      const sosBtn = document.getElementById("sosBtn");
+      const sosProgress = document.getElementById("sosProgress");
 
-  </div>
-</div>
+      // Handle both touch and mouse events
+      function startSOSTimer() {
+        if (sosInProgress) return;
 
-<script>
-/* SOS HOLD FUNCTION */
-let timer;
-const sosBtn = document.getElementById("sosBtn");
+        sosInProgress = true;
+        sosProgress.style.display = "block";
+        sosBtn.classList.add("holding");
+        let elapsed = 0;
 
-sosBtn.addEventListener("mousedown", () => {
-  timer = setTimeout(() => {
-    window.location.href = "sos.html"; // you can create this later
-  }, 2000);
-});
+        sosTimer = setInterval(() => {
+          elapsed += 100;
+          sosProgress.textContent = `${Math.floor(elapsed / 1000)}.${Math.floor((elapsed % 1000) / 100)}s`;
 
-sosBtn.addEventListener("mouseup", () => clearTimeout(timer));
-sosBtn.addEventListener("mouseleave", () => clearTimeout(timer));
+          if (elapsed >= SOS_HOLD_DURATION) {
+            clearInterval(sosTimer);
+            triggerSOS();
+          }
+        }, 100);
+      }
 
-/* EMERGENCY CARDS */
-function triggerEmergency(type) {
-  window.location.href = "emergency.html?type=" + type;
-}
+      function cancelSOSTimer() {
+        if (sosTimer) {
+          clearInterval(sosTimer);
+          sosTimer = null;
+        }
+        sosInProgress = false;
+        sosProgress.style.display = "none";
+        sosBtn.classList.remove("holding");
+      }
 
-/* TOP BAR */
-function goToProfile() {
-  window.location.href = "profile.html";
-}
+      // Mouse events
+      sosBtn.addEventListener("mousedown", startSOSTimer);
+      sosBtn.addEventListener("mouseup", cancelSOSTimer);
+      sosBtn.addEventListener("mouseleave", cancelSOSTimer);
 
-function getLocation() {
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      console.log(pos.coords.latitude, pos.coords.longitude);
-      alert("Location captured (check console)");
-    },
-    () => {
-      alert("Unable to get location");
-    }
-  );
-}
+      // Touch events (for mobile)
+      sosBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        startSOSTimer();
+      });
 
-/* NAVIGATION */
-function goHome() {
-  window.location.href = "home.html";
-}
+      sosBtn.addEventListener("touchend", (e) => {
+        e.preventDefault();
+        cancelSOSTimer();
+      });
 
-function goHistory() {
-  window.location.href = "history.html";
-}
+      sosBtn.addEventListener("touchcancel", cancelSOSTimer);
 
-function goContact() {
-  window.location.href = "contact.html";
-}
+      /**
+       * Trigger SOS incident
+       */
+      async function triggerSOS() {
+        if (!currentUser) {
+          showToast("Please login first", "error");
+          goToProfile();
+          return;
+        }
 
-function goSettings() {
-  window.location.href = "settings.html";
-}
+        try {
+          showToast("Getting your location...", "info");
+          const location = await getDeviceLocation();
+          currentLocation = location;
 
-function setActiveMenu(route) {
-  const items = document.querySelectorAll('.bottom-nav [data-route]');
-  items.forEach(item => item.classList.toggle('active', item.dataset.route === route));
-}
+          const result = await createSOSIncident(db, currentUser.uid, location);
 
-window.addEventListener('DOMContentLoaded', () => {
-  const page = window.location.pathname.split('/').pop().split('.').shift();
-  setActiveMenu(page || 'home');
+          if (result.success) {
+            showAlertModal(
+              "SOS ACTIVATED",
+              "Emergency responders have been notified of your location.",
+              () => {
+                window.location.href =
+                  "sos.html?incidentId=" + result.incidentId;
+              },
+            );
+          } else {
+            showToast("Failed to send SOS: " + result.error, "error");
+          }
+        } catch (error) {
+          console.error("SOS error:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      }
 
-  document.querySelectorAll('.bottom-nav [data-route]').forEach(item => {
-    item.addEventListener('click', () => {
-      setActiveMenu(item.dataset.route);
-    });
-  });
-});
-</script>
+      /**
+       * Get and display device location
+       */
+      async function getLocation() {
+        if (!currentUser) {
+          showToast("Please login first", "error");
+          goToProfile();
+          return;
+        }
 
-</body>
+        try {
+          showToast("Getting location...", "info");
+          const location = await getDeviceLocation();
+          currentLocation = location;
+
+          const coordText = `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`;
+          document.getElementById("locationDisplay").textContent = coordText;
+          showToast(`Location: ${coordText}`, "success");
+
+          console.log("Location:", location);
+        } catch (error) {
+          console.error("Location error:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      }
+
+      /**
+       * Trigger emergency by type
+       */
+      async function triggerEmergency(type) {
+        if (!currentUser) {
+          showToast("Please login first", "error");
+          goToProfile();
+          return;
+        }
+
+        try {
+          showToast("Getting your location...", "info");
+          const location = await getDeviceLocation();
+          currentLocation = location;
+
+          const result = await createEmergencyIncident(
+            db,
+            currentUser.uid,
+            type,
+            location,
+          );
+
+          if (result.success) {
+            window.location.href =
+              "emergency.html?type=" +
+              type +
+              "&incidentId=" +
+              result.incidentId;
+          } else {
+            showToast("Failed to create incident: " + result.error, "error");
+          }
+        } catch (error) {
+          console.error("Emergency error:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      }
+
+      /**
+       * Navigation functions
+       */
+      function goToProfile() {
+        window.location.href = "profile.html";
+      }
+
+      function goHome() {
+        window.location.href = "home.html";
+      }
+
+      function goHistory() {
+        window.location.href = "history.html";
+      }
+
+      function goContact() {
+        window.location.href = "contact.html";
+      }
+
+      function goSettings() {
+        window.location.href = "settings.html";
+      }
+
+      /**
+       * Set active menu on page load
+       */
+      function setActiveMenu(route) {
+        const items = document.querySelectorAll(".bottom-nav [data-route]");
+        items.forEach((item) =>
+          item.classList.toggle("active", item.dataset.route === route),
+        );
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        const page = window.location.pathname
+          .split("/")
+          .pop()
+          .split(".")
+          .shift();
+        setActiveMenu(page || "home");
+
+        document
+          .querySelectorAll(".bottom-nav [data-route]")
+          .forEach((item) => {
+            item.addEventListener("click", () => {
+              setActiveMenu(item.dataset.route);
+            });
+          });
+      });
+    </script>
+  </body>
 </html>
