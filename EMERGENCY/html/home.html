@@ -100,12 +100,9 @@
     </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-      import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
-      import {
-        getAuth,
-        onAuthStateChanged,
-      } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
+      import { initializeApp } from "firebase/app";
+      import { getFirestore } from "firebase/firestore";
+      import { getAuth, onAuthStateChanged } from "firebase/auth";
       import {
         createSOSIncident,
         createEmergencyIncident,
@@ -123,10 +120,23 @@
         appId: import.meta.env.VITE_FIREBASE_APP_ID,
       };
 
-      // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
-      const auth = getAuth(app);
+      // Initialize Firebase safely so the page still works even if env vars are missing.
+      let db = null;
+      let auth = null;
+      const missingFirebaseKeys = Object.entries(firebaseConfig)
+        .filter(([, value]) => !value)
+        .map(([key]) => key);
+
+      if (missingFirebaseKeys.length === 0) {
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+      } else {
+        console.error(
+          "Missing Firebase config keys:",
+          missingFirebaseKeys.join(", "),
+        );
+      }
 
       // Global state
       let currentUser = null;
@@ -147,18 +157,20 @@
       /**
        * Initialize auth state listener
        */
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          currentUser = user;
-          document.getElementById("userDisplay").textContent =
-            `${user.displayName || user.email}`;
-          console.log("User logged in:", user.email);
-        } else {
-          currentUser = null;
-          document.getElementById("userDisplay").textContent =
-            "Login using your PLP Account";
-        }
-      });
+      if (auth) {
+        onAuthStateChanged(auth, (user) => {
+          if (user) {
+            currentUser = user;
+            document.getElementById("userDisplay").textContent =
+              `${user.displayName || user.email}`;
+            console.log("User logged in:", user.email);
+          } else {
+            currentUser = null;
+            document.getElementById("userDisplay").textContent =
+              "Login using your PLP Account";
+          }
+        });
+      }
 
       /**
        * SOS Button - Mobile-friendly hold logic
@@ -194,6 +206,11 @@
         sosInProgress = false;
         sosProgress.style.display = "none";
         sosBtn.classList.remove("holding");
+      }
+
+      function resetSOSState() {
+        cancelSOSTimer();
+        sosProgress.textContent = "";
       }
 
       // Mouse events
@@ -237,7 +254,7 @@
               "Emergency responders have been notified of your location.",
               () => {
                 window.location.href =
-                  "sos.html?incidentId=" + result.incidentId;
+                  "history.html?incidentId=" + result.incidentId;
               },
             );
           } else {
@@ -246,6 +263,8 @@
         } catch (error) {
           console.error("SOS error:", error);
           showToast("Error: " + error.message, "error");
+        } finally {
+          resetSOSState();
         }
       }
 
@@ -299,10 +318,7 @@
 
           if (result.success) {
             window.location.href =
-              "emergency.html?type=" +
-              type +
-              "&incidentId=" +
-              result.incidentId;
+              "history.html?type=" + type + "&incidentId=" + result.incidentId;
           } else {
             showToast("Failed to create incident: " + result.error, "error");
           }
@@ -316,7 +332,7 @@
        * Navigation functions
        */
       function goToProfile() {
-        window.location.href = "profile.html";
+        window.location.href = "login.html";
       }
 
       function goHome() {
@@ -346,6 +362,13 @@
       }
 
       window.addEventListener("DOMContentLoaded", () => {
+        if (!auth) {
+          showToast(
+            "Firebase config missing. Check your .env values.",
+            "error",
+          );
+        }
+
         const page = window.location.pathname
           .split("/")
           .pop()

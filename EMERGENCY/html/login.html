@@ -1,69 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PLP Login</title>
-  <link rel="stylesheet" href="../css/login.css" />
-</head>
-<body>
-  <div class="phone-frame">
-    <div class="screen">
-      <div class="login-shell">
-        <header class="login-header">
-          <div class="logo">🏫</div>
-          <h1>School Portal</h1>
-          <p>Sign in with your school account for safety features</p>
-        </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PLP Login</title>
+    <link rel="stylesheet" href="../css/login.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="phone-frame">
+      <div class="screen">
+        <div class="top-bar">
+          <div class="profile-chip">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span>PLP Secure Access</span>
+          </div>
+          <div class="location-chip">
+            <span>Emergency Ready</span>
+            <i class="fa-solid fa-location-dot"></i>
+          </div>
+        </div>
 
-        <main class="login-card">
-          <section class="login-panel">
-            <h2>School Account Login</h2>
-            <form id="loginForm">
-              <label for="email">School Email</label>
-              <input id="email" name="email" type="email" placeholder="student@school.edu" required />
+        <div class="login-shell">
+          <header class="login-header">
+            <p class="eyebrow">Emergency Response System</p>
+            <h1>Sign In to Continue</h1>
+            <p class="sub">
+              Use your official PLP account to enable secure emergency
+              reporting.
+            </p>
+          </header>
 
-              <label for="password">Password</label>
-              <input id="password" name="password" type="password" placeholder="••••••••" required />
+          <main class="login-card">
+            <section class="login-panel">
+              <h2>PLP Account Login</h2>
+              <form id="loginForm">
+                <label for="email">School Email</label>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-envelope"></i>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    placeholder="student@plpasig.edu.ph"
+                    required
+                  />
+                </div>
 
-              <button type="submit" class="primary-btn">Sign In</button>
-            </form>
-          </section>
+                <label for="password">Password</label>
+                <div class="input-wrap">
+                  <i class="fa-solid fa-lock"></i>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
 
-          <div class="divider"><span>or</span></div>
+                <div class="meta-row">
+                  <label class="remember-me">
+                    <input type="checkbox" id="rememberMe" name="rememberMe" />
+                    <span>Remember me</span>
+                  </label>
+                  <button type="button" class="text-btn">
+                    Forgot password?
+                  </button>
+                </div>
 
-          <button id="autoLoginButton" class="auto-btn">Sign In with School Account</button>
-        </main>
+                <button type="submit" class="primary-btn">Sign In</button>
+              </form>
+            </section>
 
-        <footer class="login-footer">
-          <p>Contact your school if you need assistance signing in.</p>
-        </footer>
+            <div class="divider"><span>or</span></div>
+
+            <button id="autoLoginButton" class="auto-btn">
+              Sign In with School Account
+            </button>
+          </main>
+
+          <footer class="login-footer">
+            <p>Need help signing in? Contact PLP IT Support.</p>
+            <div class="trust-row">
+              <span
+                ><i class="fa-solid fa-user-shield"></i> Verified Access</span
+              >
+              <span
+                ><i class="fa-solid fa-clock-rotate-left"></i> 24/7
+                Availability</span
+              >
+            </div>
+          </footer>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    const loginForm = document.getElementById('loginForm');
-    const autoLoginButton = document.getElementById('autoLoginButton');
+    <script>
+      const loginForm = document.getElementById("loginForm");
+      const autoLoginButton = document.getElementById("autoLoginButton");
 
-    function completeLogin(message) {
-      alert(message);
-      window.location.href = 'menu.html';
-    }
-
-    loginForm.addEventListener('submit', event => {
-      event.preventDefault();
-      const email = event.target.email.value.trim();
-      if (!email) {
-        alert('Please enter your PLP email address.');
-        return;
+      function completeLogin(message) {
+        alert(message);
+        window.location.href = "menu.html";
       }
-      completeLogin('Signed in as ' + email + '.');
-    });
 
-    autoLoginButton.addEventListener('click', () => {
-      completeLogin('Automatically signed in using your PLP account.');
-    });
-  </script>
-</body>
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const email = event.target.email.value.trim();
+        if (!email) {
+          alert("Please enter your PLP email address.");
+          return;
+        }
+        completeLogin("Signed in as " + email + ".");
+      });
+
+      autoLoginButton.addEventListener("click", () => {
+        completeLogin("Automatically signed in using your PLP account.");
+      });
+    </script>
+  </body>
 </html>
