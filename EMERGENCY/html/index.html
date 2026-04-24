@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PLP Emergency Response</title>
+    <link rel="stylesheet" href="../css/loading.css" />
+  </head>
+  <body>
+    <div class="phone-frame">
+      <div class="screen">
+        <img
+          src="../images/emergency response.png"
+          alt="Emergency Response Logo"
+          class="logo"
+          onerror="this.style.display = 'none'"
+        />
+        <div class="loader"></div>
+        <p class="loading-text">Checking session...</p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "firebase/app";
+      import { getAuth, onAuthStateChanged } from "firebase/auth";
+
+      const firebaseConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      };
+
+      const missingKeys = Object.values(firebaseConfig).some((v) => !v);
+
+      if (missingKeys) {
+        // Firebase not configured — send to login
+        window.location.replace("login.html");
+      } else {
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Fallback: if Firebase doesn't respond in 5s, go to login
+        const fallback = setTimeout(() => {
+          window.location.replace("login.html");
+        }, 5000);
+
+        onAuthStateChanged(auth, (user) => {
+          clearTimeout(fallback);
+          if (user) {
+            window.location.replace("home.html");
+          } else {
+            window.location.replace("login.html");
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
