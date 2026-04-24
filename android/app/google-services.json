@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "597422692829",
+    "project_id": "student-emergency-web-app",
+    "storage_bucket": "student-emergency-web-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:597422692829:android:01b45eb96d8637c2b37e34",
+        "android_client_info": {
+          "package_name": "com.company.sers"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "597422692829-bqr914tadc5uc89ve1hjl624b3n6ba6t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCsVHLDThIYH-dD7eluHBhOhUN3Vb50Po"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "597422692829-bqr914tadc5uc89ve1hjl624b3n6ba6t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

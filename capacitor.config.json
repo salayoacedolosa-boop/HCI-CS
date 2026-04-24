@@ -1,5 +1,11 @@
 {
   "appId": "com.company.sers",
   "appName": "PLP Emergency Response",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "FirebaseAuthentication": {
+      "skipNativeAuth": false,
+      "providers": ["google.com"]
+    }
+  }
 }

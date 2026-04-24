@@ -164,12 +164,6 @@
             return;
           }
 
-          if (!isAllowedGoogleUser(result.user)) {
-            showToast("Use your official PLP Google account.", "error");
-            await auth.signOut();
-            return;
-          }
-
           showToast("Google sign-in successful.", "success");
           redirectAfterLogin();
         } catch (error) {

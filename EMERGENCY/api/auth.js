@@ -1,19 +1,24 @@
 import {
-  signInWithPopup,
   GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  signInWithCredential,
 } from "firebase/auth";
+import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 
 /**
  * Sign in with Google
  */
 export async function signInWithGoogle(auth) {
   try {
-    const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
+    // Use native Google Sign-In (works in Capacitor WebView / Android emulator)
+    const nativeResult = await FirebaseAuthentication.signInWithGoogle();
+    const credential = GoogleAuthProvider.credential(
+      nativeResult.credential?.idToken,
+    );
+    const result = await signInWithCredential(auth, credential);
     console.log("Google sign-in successful:", result.user.email);
     return { success: true, user: result.user };
   } catch (error) {
