@@ -14,7 +14,9 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 export async function signInWithGoogle(auth) {
   try {
     // Use native Google Sign-In (works in Capacitor WebView / Android emulator)
-    const nativeResult = await FirebaseAuthentication.signInWithGoogle();
+    const nativeResult = await FirebaseAuthentication.signInWithGoogle({
+      useCredentialManager: false,
+    });
     const credential = GoogleAuthProvider.credential(
       nativeResult.credential?.idToken,
     );
