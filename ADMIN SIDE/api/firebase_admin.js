@@ -147,6 +147,66 @@ function normalizeIncidentRecord(entry) {
   };
 }
 
+const userProfileCache = new Map();
+
+async function getUserProfileForIncident(userId) {
+  const normalizedUserId = String(userId || "").trim();
+  if (!normalizedUserId) {
+    return null;
+  }
+
+  if (!userProfileCache.has(normalizedUserId)) {
+    const profilePromise = getDoc(doc(db, "users", normalizedUserId))
+      .then((snapshot) => (snapshot.exists() ? snapshot.data() : null))
+      .catch(() => null);
+    userProfileCache.set(normalizedUserId, profilePromise);
+  }
+
+  return userProfileCache.get(normalizedUserId);
+}
+
+async function enrichIncidentFromUserProfile(incident) {
+  const profile = await getUserProfileForIncident(incident.userId);
+  if (!profile) {
+    return {
+      ...incident,
+      callerName: incident.callerName || "Unknown Caller",
+      description:
+        incident.description ||
+        `${getIncidentTypeLabel(incident.type)} incident reported.`,
+    };
+  }
+
+  const callerName = readFirstString(
+    incident.callerName,
+    profile.fullName,
+    profile.name,
+    profile.displayName,
+    profile.email,
+  );
+
+  const contact = readFirstString(
+    incident.contact,
+    profile.phone,
+    profile.phoneNumber,
+    profile.mobile,
+    profile.emergencyPhone,
+    profile.emergencyContactNumber,
+  );
+
+  const description = readFirstString(
+    incident.description,
+    `${getIncidentTypeLabel(incident.type)} incident reported by ${callerName || "the user"}.`,
+  );
+
+  return {
+    ...incident,
+    callerName: callerName || "Unknown Caller",
+    contact,
+    description,
+  };
+}
+
 export async function resolveAdminEmail(usernameOrEmail) {
   const value = String(usernameOrEmail || "").trim();
   if (!value) {
@@ -292,9 +352,14 @@ export function subscribeIncidents(callback) {
     limit(300),
   );
 
-  return onSnapshot(incidentsQuery, (snapshot) => {
-    const incidents = snapshot.docs.map((entry) =>
+  return onSnapshot(incidentsQuery, async (snapshot) => {
+    const normalizedIncidents = snapshot.docs.map((entry) =>
       normalizeIncidentRecord(entry),
+    );
+    const incidents = await Promise.all(
+      normalizedIncidents.map((incident) =>
+        enrichIncidentFromUserProfile(incident),
+      ),
     );
     callback(incidents);
   });
@@ -309,9 +374,14 @@ export function subscribeActiveIncidents(callback) {
     limit(100),
   );
 
-  return onSnapshot(activeQuery, (snapshot) => {
-    const incidents = snapshot.docs.map((entry) =>
+  return onSnapshot(activeQuery, async (snapshot) => {
+    const normalizedIncidents = snapshot.docs.map((entry) =>
       normalizeIncidentRecord(entry),
+    );
+    const incidents = await Promise.all(
+      normalizedIncidents.map((incident) =>
+        enrichIncidentFromUserProfile(incident),
+      ),
     );
     callback(incidents);
   });

@@ -33,8 +33,8 @@
         </div>
       </div>
 
-      <button class="add-btn" onclick="openModal()" title="Add incident">
-        <i class="fa fa-plus"></i>
+      <button class="add-btn" onclick="openModal()" title="Dispatch units">
+        <i class="fa fa-truck-medical"></i>
       </button>
     </div>
 
@@ -43,14 +43,22 @@
     <div class="modal" id="incidentModal">
       <div class="modal-content emergency dispatch-ui">
         <div class="modal-header">
-          <h3>Sending Units</h3>
+          <h3>Dispatch Units</h3>
           <span class="close" onclick="closeModal()">&times;</span>
         </div>
 
         <div class="modal-body">
-          <label for="name">Caller Information</label>
-          <input type="text" id="name" placeholder="Caller Name" />
-          <input type="text" id="contact" placeholder="Contact Number" />
+          <label for="callerSelect">Active Caller</label>
+          <select id="callerSelect" title="Choose active caller"></select>
+
+          <div class="dispatch-summary" id="dispatchSummary">
+            <div>
+              <span>Contact</span><strong id="dispatchContact">-</strong>
+            </div>
+            <div>
+              <span>Incident</span><strong id="dispatchIncidentType">-</strong>
+            </div>
+          </div>
 
           <label>Which unit to send?</label>
           <div class="btn-group" id="unitGroup">
@@ -60,46 +68,41 @@
             <button>Medical</button>
           </div>
 
-          <label>Type of incident</label>
-          <select id="incident" title="Incident type">
-            <option value="Fire">Fire</option>
-            <option value="Medical">Medical</option>
-            <option value="Accident">Accident</option>
-            <option value="Security">Security</option>
-          </select>
+          <label for="incidentType">Type of incident</label>
+          <input id="incidentType" type="text" readonly />
 
-          <label>What is the problem?</label>
-          <input type="text" id="type" placeholder="Describe incident..." />
+          <label for="problemText">What is the problem?</label>
+          <textarea id="problemText" rows="3" readonly></textarea>
 
           <hr />
 
-          <div class="location-input">
-            <button
-              type="button"
-              class="track-btn"
-              onclick="trackCurrentLocation()"
-              title="Use current location"
-            >
-              <i class="fa-solid fa-location-crosshairs"></i>
-            </button>
-            <input type="text" id="location" placeholder="Specific Location" />
+          <label for="location">Specific location</label>
+          <div class="location-input readonly">
+            <input type="text" id="location" readonly />
           </div>
 
-          <label>How many victims?</label>
-          <div class="btn-group small" id="victimGroup">
-            <button>No one</button>
-            <button class="active">1-4</button>
-            <button>5-9</button>
-            <button>Over 10</button>
+          <label for="hotlineSelect">Emergency hotline</label>
+          <select id="hotlineSelect" title="Choose emergency hotline"></select>
+
+          <div id="customHotlineFields" class="custom-hotline-fields hidden">
+            <input
+              type="text"
+              id="customHotlineName"
+              placeholder="Custom hotline name"
+            />
+            <input
+              type="text"
+              id="customHotlineNumber"
+              placeholder="Custom hotline number"
+            />
           </div>
 
-          <label>How many aggressors?</label>
-          <div class="btn-group small" id="aggressorGroup">
-            <button>Single</button>
-            <button class="active">2-4</button>
-            <button>5-9</button>
-            <button>Over 10</button>
-          </div>
+          <label for="dispatchNotes">Dispatch notes</label>
+          <textarea
+            id="dispatchNotes"
+            rows="2"
+            placeholder="Optional notes for responders"
+          ></textarea>
 
           <label for="dangerRange">Rate the danger level</label>
           <input
@@ -114,40 +117,80 @@
           <div class="range-value">
             Danger level: <span id="dangerValue">5</span>/10
           </div>
-
-          <select id="status" title="Incident status">
-            <option value="active">Active</option>
-            <option value="resolved">Resolved</option>
-          </select>
         </div>
 
         <div class="modal-footer">
-          <button class="save-btn" onclick="addIncident()">SEND UNITS</button>
+          <button class="save-btn" onclick="dispatchIncident()">
+            DISPATCH &amp; PRINT REPORT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" id="locationModal">
+      <div class="modal-content map-modal-content">
+        <div class="modal-header">
+          <h3>Incident Location</h3>
+          <span class="close" onclick="closeLocationModal()">&times;</span>
+        </div>
+        <div class="map-modal-body">
+          <div id="mapLocationText" class="map-location-text">-</div>
+          <iframe
+            id="mapFrame"
+            class="map-frame"
+            title="Incident location map"
+            loading="lazy"
+          ></iframe>
+          <div class="map-actions">
+            <a
+              id="mapExternalLink"
+              class="open-map-link"
+              href="#"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Open in Google Maps</a
+            >
+          </div>
         </div>
       </div>
     </div>
 
     <script type="module">
       import {
-        createManualIncident,
         formatTimestamp,
         getIncidentTypeLabel,
         inferIncidentLocation,
         logDispatch,
         requireAdminSession,
+        subscribeHotlines,
         subscribeIncidents,
         updateIncidentStatus,
       } from "../api/firebase_admin.js";
 
       const modal = document.getElementById("incidentModal");
+      const locationModal = document.getElementById("locationModal");
+      const mapFrame = document.getElementById("mapFrame");
+      const mapLocationText = document.getElementById("mapLocationText");
+      const mapExternalLink = document.getElementById("mapExternalLink");
       const incidentContainer = document.getElementById("incidentContainer");
       const searchInput = document.getElementById("searchInput");
       const selectRoot = document.getElementById("customSelect");
       const selectedFilter = selectRoot.querySelector(".select-selected");
       const filterOptions = selectRoot.querySelectorAll(".select-items div");
+      const callerSelect = document.getElementById("callerSelect");
+      const hotlineSelect = document.getElementById("hotlineSelect");
+      const customHotlineFields = document.getElementById(
+        "customHotlineFields",
+      );
+      const customHotlineName = document.getElementById("customHotlineName");
+      const customHotlineNumber = document.getElementById(
+        "customHotlineNumber",
+      );
 
       let activeFilter = "all";
       let incidents = [];
+      let hotlines = [];
+      let selectedIncidentId = "";
 
       function escapeHtml(value) {
         return String(value || "")
@@ -162,13 +205,143 @@
         window.location.href = "tel:" + number;
       }
 
-      function openModal() {
+      function getRecommendedUnit(type) {
+        const normalized = String(type || "")
+          .toLowerCase()
+          .trim();
+        if (normalized === "fire") {
+          return "Fire";
+        }
+        if (normalized === "medical" || normalized === "injury") {
+          return "Medical";
+        }
+        if (normalized === "accident") {
+          return "Rescue";
+        }
+        return "Police";
+      }
+
+      function setActiveUnit(unitLabel) {
+        const buttons = document.querySelectorAll("#unitGroup button");
+        buttons.forEach((btn) => {
+          btn.classList.toggle(
+            "active",
+            btn.textContent.trim().toLowerCase() ===
+              String(unitLabel || "").toLowerCase(),
+          );
+        });
+      }
+
+      function renderHotlineOptions() {
+        const items = hotlines.filter((item) => item.isActive !== false);
+        hotlineSelect.innerHTML =
+          '<option value="">Select hotline...</option>' +
+          items
+            .map(
+              (item) =>
+                `<option value="${escapeHtml(item.id)}" data-phone="${escapeHtml(item.phoneNumber || item.contact || "")}">${escapeHtml(item.name || "Unnamed Hotline")} - ${escapeHtml(item.phoneNumber || item.contact || "N/A")}</option>`,
+            )
+            .join("") +
+          '<option value="custom">Custom hotline</option>';
+      }
+
+      function renderCallerOptions() {
+        const activeIncidents = incidents.filter(
+          (incident) =>
+            String(incident.status || "").toLowerCase() === "active",
+        );
+
+        callerSelect.innerHTML =
+          '<option value="">Select active incident caller...</option>' +
+          activeIncidents
+            .map((incident) => {
+              const caller = incident.callerName || "Unknown Caller";
+              const label = `${caller} - ${getIncidentTypeLabel(incident.type)} - ${inferIncidentLocation(incident)}`;
+              return `<option value="${escapeHtml(incident.id)}">${escapeHtml(label)}</option>`;
+            })
+            .join("");
+
+        if (!activeIncidents.length) {
+          callerSelect.innerHTML =
+            '<option value="">No active callers available</option>';
+        }
+      }
+
+      function populateModalFromIncident(incidentId) {
+        const target = incidents.find((item) => item.id === incidentId);
+        if (!target) {
+          return;
+        }
+
+        selectedIncidentId = target.id;
+        callerSelect.value = target.id;
+
+        const recommendedUnit = getRecommendedUnit(target.type);
+        setActiveUnit(recommendedUnit);
+
+        document.getElementById("dispatchContact").textContent =
+          target.contact || "N/A";
+        document.getElementById("dispatchIncidentType").textContent =
+          getIncidentTypeLabel(target.type);
+        document.getElementById("incidentType").value = getIncidentTypeLabel(
+          target.type,
+        );
+        document.getElementById("problemText").value =
+          target.description || "No description provided.";
+        document.getElementById("location").value =
+          inferIncidentLocation(target);
+
+        const existingDanger = Number(target.metadata?.dangerLevel || 5);
+        const normalizedDanger = Number.isFinite(existingDanger)
+          ? Math.min(10, Math.max(1, existingDanger))
+          : 5;
+        document.getElementById("dangerRange").value = normalizedDanger;
+        document.getElementById("dangerValue").textContent = normalizedDanger;
+
+        if (hotlineSelect.options.length > 1) {
+          hotlineSelect.selectedIndex = 1;
+        }
+        customHotlineFields.classList.add("hidden");
+      }
+
+      function openModal(preselectedIncidentId = "") {
+        renderCallerOptions();
+        renderHotlineOptions();
+        document.getElementById("dispatchNotes").value = "";
+        selectedIncidentId = "";
+
+        if (preselectedIncidentId) {
+          populateModalFromIncident(preselectedIncidentId);
+        }
+
         modal.classList.add("show");
-        setTimeout(() => document.getElementById("name").focus(), 80);
+        setTimeout(() => callerSelect.focus(), 80);
       }
 
       function closeModal() {
         modal.classList.remove("show");
+      }
+
+      function openLocationModal(lat, lng, label = "") {
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          alert("Location coordinates are not available for this incident.");
+          return;
+        }
+
+        const encodedCoords = encodeURIComponent(`${lat},${lng}`);
+        const embedUrl = `https://maps.google.com/maps?q=${encodedCoords}&z=16&output=embed`;
+        const mapUrl = `https://www.google.com/maps?q=${encodedCoords}`;
+
+        mapFrame.src = embedUrl;
+        mapExternalLink.href = mapUrl;
+        mapLocationText.textContent =
+          label || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        locationModal.classList.add("show");
+      }
+
+      function closeLocationModal() {
+        locationModal.classList.remove("show");
+        mapFrame.src = "";
       }
 
       function getSelectedText(groupId) {
@@ -250,13 +423,16 @@
 
             <div class="card-actions">
                 <button class="btn call"><i class="fa fa-phone"></i></button>
+                <button class="btn dispatch">Dispatch</button>
                 <button class="btn" style="background:#2e793e;color:#fff;">Mark Resolved</button>
             </div>
         `;
 
-          const [callBtn, resolveBtn] =
+          const [callBtn, dispatchBtn, resolveBtn] =
             card.querySelectorAll(".card-actions .btn");
           callBtn.addEventListener("click", () => callUser(contact));
+          dispatchBtn.addEventListener("click", () => openModal(incident.id));
+          dispatchBtn.disabled = status !== "active";
           resolveBtn.addEventListener("click", async () => {
             await updateIncidentStatus(incident.id, "resolved");
             await logDispatch({
@@ -272,104 +448,131 @@
             .addEventListener("click", (event) => {
               const lat = Number(event.currentTarget.dataset.lat);
               const lng = Number(event.currentTarget.dataset.lng);
-
-              if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-                return;
-              }
-
-              window.parent.postMessage(
-                {
-                  type: "TRACK_LOCATION",
-                  location: { lat, lng },
-                },
-                "*",
-              );
+              openLocationModal(lat, lng, location);
             });
 
           incidentContainer.appendChild(card);
         });
       }
 
-      async function addIncident() {
-        const name = document.getElementById("name").value.trim();
-        const locationText = document.getElementById("location").value.trim();
-        const type = document.getElementById("incident").value;
-        const description = document.getElementById("type").value.trim();
-        const contact = document.getElementById("contact").value.trim();
-        const status = document.getElementById("status").value;
-        const unit = getSelectedText("unitGroup") || "Police";
-        const victims = getSelectedText("victimGroup") || "1-4";
-        const aggressors = getSelectedText("aggressorGroup") || "2-4";
-        const dangerLevel = document.getElementById("dangerRange").value;
+      function getHotlineSelection() {
+        if (hotlineSelect.value === "custom") {
+          return {
+            name: customHotlineName.value.trim(),
+            phone: customHotlineNumber.value.trim(),
+          };
+        }
 
-        if (!name || !locationText || !description || !contact) {
-          alert("Fill required fields");
+        const selectedOption =
+          hotlineSelect.options[hotlineSelect.selectedIndex];
+        return {
+          name:
+            selectedOption?.textContent?.split(" - ")?.[0] || "Response Team",
+          phone: selectedOption?.dataset?.phone || "",
+        };
+      }
+
+      function openPrintReport({ incident, dispatch }) {
+        const reportWindow = window.open("", "_blank", "width=920,height=760");
+        if (!reportWindow) {
+          alert("Please allow popups to print the dispatch report.");
           return;
         }
 
-        let lat = null;
-        let lng = null;
-        const parts = locationText
-          .split(",")
-          .map((part) => Number(part.trim()));
-        if (
-          parts.length === 2 &&
-          Number.isFinite(parts[0]) &&
-          Number.isFinite(parts[1])
-        ) {
-          lat = parts[0];
-          lng = parts[1];
+        const reportHtml = `
+          <!doctype html>
+          <html>
+            <head>
+              <meta charset="UTF-8" />
+              <title>Dispatch Report - ${escapeHtml(incident.id)}</title>
+              <style>
+                body { font-family: Arial, sans-serif; padding: 28px; color: #111827; }
+                .header { border-bottom: 2px solid #0f5132; margin-bottom: 16px; padding-bottom: 10px; }
+                h1 { margin: 0; font-size: 22px; }
+                .muted { color: #6b7280; font-size: 12px; }
+                .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; margin-top: 14px; }
+                .card { border: 1px solid #d1d5db; border-radius: 10px; padding: 12px; }
+                .label { font-size: 11px; color: #6b7280; text-transform: uppercase; }
+                .value { font-size: 14px; margin-top: 4px; font-weight: 600; }
+                .full { grid-column: 1 / -1; }
+                @media print { body { padding: 16px; } }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1>Incident Dispatch Report</h1>
+                <div class="muted">Generated ${new Date().toLocaleString()}</div>
+              </div>
+              <div class="grid">
+                <div class="card"><div class="label">Incident ID</div><div class="value">${escapeHtml(incident.id)}</div></div>
+                <div class="card"><div class="label">Status</div><div class="value">Dispatched</div></div>
+                <div class="card"><div class="label">Caller</div><div class="value">${escapeHtml(incident.callerName || "Unknown Caller")}</div></div>
+                <div class="card"><div class="label">Contact</div><div class="value">${escapeHtml(incident.contact || "N/A")}</div></div>
+                <div class="card"><div class="label">Incident Type</div><div class="value">${escapeHtml(getIncidentTypeLabel(incident.type))}</div></div>
+                <div class="card"><div class="label">Location</div><div class="value">${escapeHtml(inferIncidentLocation(incident))}</div></div>
+                <div class="card"><div class="label">Assigned Unit</div><div class="value">${escapeHtml(dispatch.unit)}</div></div>
+                <div class="card"><div class="label">Hotline</div><div class="value">${escapeHtml(dispatch.hotlineName)} ${dispatch.hotlinePhone ? `(${escapeHtml(dispatch.hotlinePhone)})` : ""}</div></div>
+                <div class="card"><div class="label">Danger Level</div><div class="value">${escapeHtml(String(dispatch.dangerLevel))}/10</div></div>
+                <div class="card full"><div class="label">Description</div><div class="value">${escapeHtml(incident.description || "No description")}</div></div>
+                <div class="card full"><div class="label">Dispatch Notes</div><div class="value">${escapeHtml(dispatch.notes || "-")}</div></div>
+              </div>
+            </body>
+          </html>
+        `;
+
+        reportWindow.document.open();
+        reportWindow.document.write(reportHtml);
+        reportWindow.document.close();
+        reportWindow.focus();
+        reportWindow.print();
+      }
+
+      async function dispatchIncident() {
+        const incidentId = callerSelect.value || selectedIncidentId;
+        const selectedIncident = incidents.find(
+          (item) => item.id === incidentId,
+        );
+        const unit = getSelectedText("unitGroup") || "Police";
+        const dangerLevel = document.getElementById("dangerRange").value;
+        const notes = document.getElementById("dispatchNotes").value.trim();
+        const hotline = getHotlineSelection();
+
+        if (!selectedIncident) {
+          alert("Please select an active caller first.");
+          return;
         }
 
-        await createManualIncident({
-          callerName: name,
-          contact,
-          type: type.toLowerCase(),
-          description,
-          status,
-          unit,
-          victims,
-          aggressors,
-          dangerLevel,
-          location: {
-            label: locationText,
-            lat,
-            lng,
-            accuracy: null,
-            timestamp: new Date().toISOString(),
-          },
-        });
+        if (!hotline.name) {
+          alert("Please select an emergency hotline.");
+          return;
+        }
+
+        if (hotlineSelect.value === "custom" && !hotline.phone) {
+          alert("Please enter a custom hotline number.");
+          return;
+        }
+
+        await updateIncidentStatus(selectedIncident.id, "dispatched");
 
         await logDispatch({
-          receiver: unit,
+          incidentId: selectedIncident.id,
+          receiver: `${unit} - ${hotline.name}`,
           status: "Delivered",
-          message: `Unit dispatched for ${type}`,
+          message: `Unit dispatched for ${getIncidentTypeLabel(selectedIncident.type)} at ${inferIncidentLocation(selectedIncident)}${notes ? ` | Notes: ${notes}` : ""}`,
+        });
+
+        openPrintReport({
+          incident: selectedIncident,
+          dispatch: {
+            unit,
+            hotlineName: hotline.name,
+            hotlinePhone: hotline.phone,
+            dangerLevel,
+            notes,
+          },
         });
 
         closeModal();
-        document.getElementById("name").value = "";
-        document.getElementById("location").value = "";
-        document.getElementById("type").value = "";
-        document.getElementById("contact").value = "";
-      }
-
-      function trackCurrentLocation() {
-        const locationInput = document.getElementById("location");
-
-        if (!navigator.geolocation) {
-          alert("Geolocation is not supported by this browser.");
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            locationInput.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-          },
-          () => {
-            alert("Unable to get current location.");
-          },
-        );
       }
 
       function setupSelectableButtonGroup(groupId) {
@@ -400,6 +603,13 @@
       });
 
       searchInput.addEventListener("input", applyFilters);
+      callerSelect.addEventListener("change", (event) => {
+        populateModalFromIncident(event.target.value);
+      });
+      hotlineSelect.addEventListener("change", () => {
+        const isCustom = hotlineSelect.value === "custom";
+        customHotlineFields.classList.toggle("hidden", !isCustom);
+      });
 
       document.addEventListener("keydown", (e) => {
         if (e.ctrlKey && e.key.toLowerCase() === "a") {
@@ -413,6 +623,10 @@
           closeModal();
         }
 
+        if (e.key === "Escape" && locationModal.classList.contains("show")) {
+          closeLocationModal();
+        }
+
         if (!modal.classList.contains("show")) {
           return;
         }
@@ -420,16 +634,24 @@
         const active = document.activeElement;
         if (
           e.key === "Enter" &&
-          (active.tagName === "INPUT" || active.tagName === "SELECT")
+          (active.tagName === "INPUT" ||
+            active.tagName === "SELECT" ||
+            active.tagName === "TEXTAREA")
         ) {
           e.preventDefault();
-          addIncident();
+          dispatchIncident();
         }
       });
 
       modal.addEventListener("click", (e) => {
         if (e.target === modal) {
           closeModal();
+        }
+      });
+
+      locationModal.addEventListener("click", (e) => {
+        if (e.target === locationModal) {
+          closeLocationModal();
         }
       });
 
@@ -442,17 +664,20 @@
 
       window.openModal = openModal;
       window.closeModal = closeModal;
-      window.addIncident = addIncident;
-      window.trackCurrentLocation = trackCurrentLocation;
+      window.openLocationModal = openLocationModal;
+      window.closeLocationModal = closeLocationModal;
+      window.dispatchIncident = dispatchIncident;
 
       setupSelectableButtonGroup("unitGroup");
-      setupSelectableButtonGroup("victimGroup");
-      setupSelectableButtonGroup("aggressorGroup");
 
       await requireAdminSession({ autoRedirect: true });
       subscribeIncidents((liveIncidents) => {
         incidents = liveIncidents;
         applyFilters();
+      });
+      subscribeHotlines((liveHotlines) => {
+        hotlines = liveHotlines;
+        renderHotlineOptions();
       });
     </script>
   </body>

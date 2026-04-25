@@ -26,212 +26,354 @@
   <body>
     <!-- MAP -->
     <div id="map"></div>
-
-    <!-- RIGHT PANEL -->
-    <div class="panel">
-      <div class="panel-header">
-        <h3>Sending Units</h3>
-        <span>#01</span>
-      </div>
-
-      <!-- CALLER -->
-      <label for="name">Caller Information</label>
-      <input type="text" id="name" placeholder="Caller Name" />
-      <!-- CONTACT -->
-      <input type="text" id="contact" placeholder="Contact Number" />
-
-      <!-- UNIT -->
-      <label>Which unit to send?</label>
-      <div class="btn-group" id="unitGroup">
-        <button class="active">Police</button>
-        <button>Fire</button>
-        <button>Rescue</button>
-        <button>Medical</button>
-      </div>
-
-      <!-- TYPE -->
-      <label>Type of incident</label>
-      <select id="incidentType" title="Incident type">
-        <option>Fire</option>
-        <option>Medical</option>
-        <option>Accident</option>
-        <option>Security</option>
-      </select>
-
-      <!-- PROBLEM -->
-      <label>What is the problem?</label>
-      <input type="text" id="problemText" placeholder="Describe incident..." />
-
-      <hr />
-
-      <!-- VICTIMS -->
-      <label>How many victims?</label>
-      <div class="btn-group small" id="victimGroup">
-        <button>No one</button>
-        <button class="active">1-4</button>
-        <button>5-9</button>
-        <button>Over 10</button>
-      </div>
-
-      <!-- AGGRESSORS -->
-      <label>How many aggressors?</label>
-      <div class="btn-group small" id="aggressorGroup">
-        <button>Single</button>
-        <button class="active">2-4</button>
-        <button>5-9</button>
-        <button>Over 10</button>
-      </div>
-
-      <!-- RANGE -->
-      <label for="dangerRange">Rate the danger level</label>
-      <input
-        type="range"
-        id="dangerRange"
-        class="range"
-        min="1"
-        max="10"
-        value="5"
-        title="Danger level: 5"
-      />
-      <div class="range-value">
-        Danger level: <span id="dangerValue">5</span>/10
-      </div>
-
-      <div class="panel-footer">
-        <button class="send-btn" id="sendUnitsBtn">Send Units</button>
+    <div id="debugBadge" class="debug-badge">Missing coords: 0</div>
+    <div id="incidentModal" class="incident-modal hidden" aria-hidden="true">
+      <div class="incident-modal-backdrop"></div>
+      <div class="incident-modal-card" role="dialog" aria-modal="true">
+        <div class="incident-modal-header">
+          <h3>Active Incident Details</h3>
+          <button type="button" class="modal-close-btn" id="closeIncidentModal">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="incident-modal-body">
+          <div class="detail-row">
+            <span>Caller</span><strong id="detailCaller">-</strong>
+          </div>
+          <div class="detail-row">
+            <span>Contact</span><strong id="detailContact">-</strong>
+          </div>
+          <div class="detail-row">
+            <span>Incident Type</span><strong id="detailType">-</strong>
+          </div>
+          <div class="detail-row">
+            <span>Status</span><strong id="detailStatus">-</strong>
+          </div>
+          <div class="detail-row">
+            <span>Location</span><strong id="detailLocation">-</strong>
+          </div>
+          <div class="detail-row full">
+            <span>Description</span><strong id="detailDescription">-</strong>
+          </div>
+        </div>
+        <div class="incident-modal-actions">
+          <button type="button" class="secondary-btn" id="dismissIncidentModal">
+            Close
+          </button>
+          <button type="button" class="primary-btn" id="manageIncidentBtn">
+            Manage in Incidents
+          </button>
+        </div>
       </div>
     </div>
 
     <script type="module">
       import {
-        createManualIncident,
-        inferIncidentLocation,
-        logDispatch,
         requireAdminSession,
         subscribeActiveIncidents,
-        updateIncidentStatus,
       } from "../api/firebase_admin.js";
 
       let map;
       let markerRegistry = new Map();
-      let selectedIncident = null;
+      let incidentRegistry = new Map();
+      let edgeIndicatorRegistry = new Map();
+      let edgeLayer;
+      const debugBadge = document.getElementById("debugBadge");
+      const incidentModal = document.getElementById("incidentModal");
+      const closeIncidentModalBtn =
+        document.getElementById("closeIncidentModal");
+      const dismissIncidentModalBtn = document.getElementById(
+        "dismissIncidentModal",
+      );
+      const manageIncidentBtn = document.getElementById("manageIncidentBtn");
+      const detailCaller = document.getElementById("detailCaller");
+      const detailContact = document.getElementById("detailContact");
+      const detailType = document.getElementById("detailType");
+      const detailStatus = document.getElementById("detailStatus");
+      const detailLocation = document.getElementById("detailLocation");
+      const detailDescription = document.getElementById("detailDescription");
+      let hasAutoFocused = false;
+      let selectedIncidentForManage = null;
 
-      function getSelectedText(groupSelector) {
-        const activeButton = document.querySelector(
-          `${groupSelector} button.active`,
-        );
-        return activeButton ? activeButton.textContent.trim() : "";
+      const markerIcon = L.divIcon({
+        className: "incident-alert-marker",
+        html: '<span class="pulse-ring"></span><span class="marker-core"><i class="fa-solid fa-triangle-exclamation"></i></span>',
+        iconSize: [42, 42],
+        iconAnchor: [21, 21],
+      });
+
+      function getIncidentCoordinates(incident) {
+        const location = incident?.location || {};
+        const latCandidate =
+          location.lat ??
+          location.latitude ??
+          location._lat ??
+          incident?.lat ??
+          incident?.latitude;
+        const lngCandidate =
+          location.lng ??
+          location.lon ??
+          location.long ??
+          location.longitude ??
+          location._long ??
+          incident?.lng ??
+          incident?.longitude;
+
+        const lat =
+          typeof latCandidate === "number"
+            ? latCandidate
+            : Number(String(latCandidate || "").trim());
+        const lng =
+          typeof lngCandidate === "number"
+            ? lngCandidate
+            : Number(String(lngCandidate || "").trim());
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return null;
+        }
+
+        return { lat, lng };
       }
 
-      function setFormFromIncident(incident) {
-        selectedIncident = incident;
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
 
-        document.getElementById("name").value =
-          incident.callerName || "Unknown Caller";
-        document.getElementById("contact").value = incident.contact || "";
-        document.getElementById("incidentType").value = incident.type
-          ? String(incident.type).charAt(0).toUpperCase() +
-            String(incident.type).slice(1)
-          : "Security";
-        document.getElementById("problemText").value =
-          incident.description || "";
+      function getLocationLabel(incident, coordinates) {
+        if (incident?.location?.label) {
+          return incident.location.label;
+        }
+
+        if (!coordinates) {
+          return "Unknown";
+        }
+
+        return `${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)}`;
+      }
+
+      function openIncidentModal(incident) {
+        const coordinates = getIncidentCoordinates(incident);
+        selectedIncidentForManage = incident;
+
+        detailCaller.textContent = incident.callerName || "Unknown Caller";
+        detailContact.textContent = incident.contact || "N/A";
+        detailType.textContent = incident.type || "Incident";
+        detailStatus.textContent = String(
+          incident.status || "active",
+        ).toUpperCase();
+        detailLocation.textContent = getLocationLabel(incident, coordinates);
+        detailDescription.textContent =
+          incident.description || "No description provided.";
+
+        incidentModal.classList.remove("hidden");
+        incidentModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeIncidentModal() {
+        incidentModal.classList.add("hidden");
+        incidentModal.setAttribute("aria-hidden", "true");
+      }
+
+      function transferToIncidentsPage(incidentId) {
+        const route = "incidents.html";
+        try {
+          sessionStorage.setItem("focusIncidentId", incidentId || "");
+        } catch {
+          // Ignore storage failures.
+        }
+
+        try {
+          if (window.parent && typeof window.parent.loadPage === "function") {
+            const menuItem = window.parent.document.querySelector(
+              '.sidebar li[onclick*="incidents.html"]',
+            );
+            if (menuItem) {
+              window.parent.loadPage(route, menuItem);
+              return;
+            }
+          }
+        } catch {
+          // Fall back to direct frame navigation.
+        }
+
+        try {
+          const frame = window.parent?.document?.getElementById("contentFrame");
+          if (frame) {
+            frame.src = route;
+            return;
+          }
+        } catch {
+          // Fall through to local navigation.
+        }
+
+        window.location.href = route;
       }
 
       function addOrUpdateMarker(incident) {
-        if (
-          !incident.location ||
-          typeof incident.location.lat !== "number" ||
-          typeof incident.location.lng !== "number"
-        ) {
+        const coordinates = getIncidentCoordinates(incident);
+        if (!coordinates) {
           return;
         }
 
-        const markerText = `${incident.type || "incident"} - ${inferIncidentLocation(incident)}`;
+        incidentRegistry.set(incident.id, {
+          incident,
+          coordinates,
+        });
+
         if (markerRegistry.has(incident.id)) {
-          markerRegistry
-            .get(incident.id)
-            .setLatLng([incident.location.lat, incident.location.lng]);
-          markerRegistry.get(incident.id).bindPopup(markerText);
+          const existing = markerRegistry.get(incident.id);
+          existing.iconMarker.setLatLng([coordinates.lat, coordinates.lng]);
+          existing.iconMarker.setZIndexOffset(1000);
+          existing.haloMarker.setLatLng([coordinates.lat, coordinates.lng]);
+          existing.incident = incident;
           return;
         }
 
-        const marker = L.marker([incident.location.lat, incident.location.lng])
-          .addTo(map)
-          .bindPopup(markerText);
+        const iconMarker = L.marker([coordinates.lat, coordinates.lng], {
+          icon: markerIcon,
+          keyboard: false,
+          riseOnHover: true,
+        }).addTo(map);
+        iconMarker.setZIndexOffset(1000);
 
-        marker.on("click", () => setFormFromIncident(incident));
-        markerRegistry.set(incident.id, marker);
+        const haloMarker = L.circleMarker([coordinates.lat, coordinates.lng], {
+          radius: 14,
+          color: "#ffffff",
+          weight: 2,
+          fillColor: "#ef4444",
+          fillOpacity: 0.38,
+        }).addTo(map);
+
+        iconMarker.on("click", () => openIncidentModal(incident));
+        haloMarker.on("click", () => openIncidentModal(incident));
+
+        markerRegistry.set(incident.id, { iconMarker, haloMarker, incident });
+      }
+
+      function ensureEdgeLayer() {
+        if (edgeLayer) {
+          return;
+        }
+
+        edgeLayer = document.createElement("div");
+        edgeLayer.className = "map-edge-layer";
+        map.getContainer().appendChild(edgeLayer);
+      }
+
+      function removeEdgeIndicator(id) {
+        const indicator = edgeIndicatorRegistry.get(id);
+        if (!indicator) {
+          return;
+        }
+
+        indicator.remove();
+        edgeIndicatorRegistry.delete(id);
+      }
+
+      function getOrCreateEdgeIndicator(id, incident) {
+        if (edgeIndicatorRegistry.has(id)) {
+          return edgeIndicatorRegistry.get(id);
+        }
+
+        const indicator = document.createElement("button");
+        indicator.type = "button";
+        indicator.className = "edge-indicator";
+        indicator.innerHTML = '<i class="fa-solid fa-location-dot"></i>';
+        indicator.title = `${incident.callerName || "Caller"} - ${incident.type || "Incident"}`;
+        indicator.addEventListener("click", () => {
+          const state = incidentRegistry.get(id);
+          if (!state) {
+            return;
+          }
+          map.panTo([state.coordinates.lat, state.coordinates.lng], {
+            animate: true,
+          });
+          openIncidentModal(state.incident);
+        });
+
+        edgeLayer.appendChild(indicator);
+        edgeIndicatorRegistry.set(id, indicator);
+        return indicator;
+      }
+
+      function updateEdgeIndicators() {
+        if (!map) {
+          return;
+        }
+
+        ensureEdgeLayer();
+
+        const size = map.getSize();
+        const minDistanceToEdge = 18;
+        const edgePadding = 24;
+        const activeIds = new Set();
+
+        incidentRegistry.forEach(({ incident, coordinates }, id) => {
+          activeIds.add(id);
+          const point = map.latLngToContainerPoint([
+            coordinates.lat,
+            coordinates.lng,
+          ]);
+
+          const isInside =
+            point.x >= minDistanceToEdge &&
+            point.x <= size.x - minDistanceToEdge &&
+            point.y >= minDistanceToEdge &&
+            point.y <= size.y - minDistanceToEdge;
+
+          if (isInside) {
+            removeEdgeIndicator(id);
+            return;
+          }
+
+          const x = Math.max(
+            edgePadding,
+            Math.min(size.x - edgePadding, point.x),
+          );
+          const y = Math.max(
+            edgePadding,
+            Math.min(size.y - edgePadding, point.y),
+          );
+
+          const indicator = getOrCreateEdgeIndicator(id, incident);
+          indicator.style.left = `${x}px`;
+          indicator.style.top = `${y}px`;
+        });
+
+        Array.from(edgeIndicatorRegistry.keys()).forEach((id) => {
+          if (!activeIds.has(id)) {
+            removeEdgeIndicator(id);
+          }
+        });
       }
 
       function removeMissingMarkers(currentIncidents) {
         const ids = new Set(currentIncidents.map((incident) => incident.id));
-        markerRegistry.forEach((marker, id) => {
+        markerRegistry.forEach((markers, id) => {
           if (ids.has(id)) {
             return;
           }
 
-          map.removeLayer(marker);
+          map.removeLayer(markers.iconMarker);
+          map.removeLayer(markers.haloMarker);
           markerRegistry.delete(id);
+          incidentRegistry.delete(id);
+          removeEdgeIndicator(id);
         });
       }
 
-      async function sendUnits() {
-        const callerName = document.getElementById("name").value.trim();
-        const contact = document.getElementById("contact").value.trim();
-        const type = document
-          .getElementById("incidentType")
-          .value.toLowerCase();
-        const description = document.getElementById("problemText").value.trim();
-        const unit = getSelectedText("#unitGroup") || "Police";
-        const victims = getSelectedText("#victimGroup") || "1-4";
-        const aggressors = getSelectedText("#aggressorGroup") || "2-4";
-        const dangerLevel = Number(
-          document.getElementById("dangerRange").value || 5,
-        );
-
-        if (!callerName || !contact) {
-          alert("Caller name and contact are required.");
+      function updateDebugBadge({ activeCount, missingCount, renderedCount }) {
+        if (!debugBadge) {
           return;
         }
 
-        if (selectedIncident) {
-          await updateIncidentStatus(selectedIncident.id, "dispatched");
-          await logDispatch({
-            incidentId: selectedIncident.id,
-            receiver: unit,
-            status: "Delivered",
-            message: `Units dispatched for ${selectedIncident.type || "incident"}`,
-          });
-          alert("Units sent for selected incident.");
-          return;
-        }
-
-        await createManualIncident({
-          callerName,
-          contact,
-          type,
-          description,
-          status: "dispatched",
-          unit,
-          victims,
-          aggressors,
-          dangerLevel,
-          location: {
-            label: "Pinned from command map",
-            lat: map.getCenter().lat,
-            lng: map.getCenter().lng,
-            accuracy: null,
-            timestamp: new Date().toISOString(),
-          },
-        });
-
-        await logDispatch({
-          receiver: unit,
-          status: "Delivered",
-          message: `Manual dispatch created for ${type}`,
-        });
-
-        alert("Manual dispatch incident created.");
+        debugBadge.textContent = `Missing coords: ${missingCount} / ${activeCount} active | Rendered: ${renderedCount}`;
+        debugBadge.classList.toggle("has-missing", missingCount > 0);
       }
 
       await requireAdminSession({ autoRedirect: true });
@@ -245,30 +387,59 @@
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(map);
 
-      document.querySelectorAll(".btn-group button").forEach((button) => {
-        button.addEventListener("click", function () {
-          const group = this.parentElement;
-          group
-            .querySelectorAll("button")
-            .forEach((entry) => entry.classList.remove("active"));
-          this.classList.add("active");
-        });
+      map.on("move zoom resize", updateEdgeIndicators);
+
+      closeIncidentModalBtn.addEventListener("click", closeIncidentModal);
+      dismissIncidentModalBtn.addEventListener("click", closeIncidentModal);
+      incidentModal
+        .querySelector(".incident-modal-backdrop")
+        .addEventListener("click", closeIncidentModal);
+      manageIncidentBtn.addEventListener("click", () => {
+        if (!selectedIncidentForManage?.id) {
+          return;
+        }
+        closeIncidentModal();
+        transferToIncidentsPage(selectedIncidentForManage.id);
       });
 
-      document
-        .getElementById("dangerRange")
-        .addEventListener("input", function () {
-          document.getElementById("dangerValue").textContent = this.value;
-          this.title = `Danger level: ${this.value}`;
+      subscribeActiveIncidents((incidents) => {
+        const activeOnly = incidents.filter(
+          (incident) =>
+            String(incident.status || "").toLowerCase() === "active",
+        );
+
+        let missingCount = 0;
+        const activeWithCoordinates = activeOnly.filter((incident) => {
+          const hasCoordinates = !!getIncidentCoordinates(incident);
+          if (!hasCoordinates) {
+            missingCount += 1;
+          }
+          return hasCoordinates;
         });
 
-      document
-        .getElementById("sendUnitsBtn")
-        .addEventListener("click", sendUnits);
+        activeWithCoordinates.forEach(addOrUpdateMarker);
+        removeMissingMarkers(activeWithCoordinates);
+        updateEdgeIndicators();
 
-      subscribeActiveIncidents((incidents) => {
-        incidents.forEach(addOrUpdateMarker);
-        removeMissingMarkers(incidents);
+        if (!hasAutoFocused && activeWithCoordinates.length) {
+          const bounds = L.latLngBounds(
+            activeWithCoordinates.map((incident) => {
+              const coords = getIncidentCoordinates(incident);
+              return [coords.lat, coords.lng];
+            }),
+          );
+          map.fitBounds(bounds, {
+            padding: [70, 70],
+            maxZoom: 17,
+          });
+          hasAutoFocused = true;
+        }
+
+        updateDebugBadge({
+          activeCount: activeOnly.length,
+          missingCount,
+          renderedCount: markerRegistry.size,
+        });
       });
     </script>
   </body>
