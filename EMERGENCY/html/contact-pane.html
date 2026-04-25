@@ -29,7 +29,8 @@
       <div class="contacts-content">
         <div class="contacts-section">
           <h3 class="section-title">
-            <i class="fa-solid fa-building"></i>Official Emergency Hotlines
+            <i class="fa-solid fa-building"></i
+            ><span class="section-label">Official Emergency Hotlines</span>
           </h3>
           <div class="contact-list" id="officialContacts">
             <div class="contact-state">Loading hotlines...</div>
@@ -38,7 +39,8 @@
 
         <div class="contacts-section" id="personalSection">
           <h3 class="section-title">
-            <i class="fa-solid fa-user-friends"></i>Personal Emergency Contacts
+            <i class="fa-solid fa-user-friends"></i
+            ><span class="section-label">Personal Emergency Contacts</span>
           </h3>
           <div class="contact-list" id="personalContacts">
             <div class="contact-state">Sign in to view your contacts.</div>
@@ -132,6 +134,73 @@
       const closeModalBtn = document.getElementById("closeModalBtn");
       const addContactForm = document.getElementById("addContactForm");
       const submitBtn = document.getElementById("submitBtn");
+      const LOCAL_CONTACTS_KEY = "emergency_personal_contacts";
+
+      let contactStorageMode = "firestore";
+
+      function applyTheme(theme) {
+        const isDark =
+          theme === "dark" ||
+          (theme === "auto" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+        document.documentElement.classList.toggle("theme-dark", isDark);
+        document.body.classList.toggle("theme-dark", isDark);
+      }
+
+      function applyLanguage(language) {
+        const title = document.querySelector("h1");
+        const sub = document.querySelector(".sub");
+        const addBtnLabel = addContactBtn?.querySelector("span");
+        const modalTitle = document.querySelector(
+          "#addContactModal .modal-header h3",
+        );
+        const submitButton = document.getElementById("submitBtn");
+        const sectionLabels = document.querySelectorAll(".section-label");
+        if (language === "tl") {
+          title.innerHTML = "MGA EMERGENCY <br /> CONTACT";
+          sub.textContent = "Opisyal na hotlines at personal na contacts";
+          if (addBtnLabel) {
+            addBtnLabel.textContent = "Magdagdag ng Emergency Contact";
+          }
+          if (sectionLabels[0]) {
+            sectionLabels[0].textContent = "Official Emergency Hotlines";
+          }
+          if (sectionLabels[1]) {
+            sectionLabels[1].textContent = "Personal Emergency Contacts";
+          }
+          if (modalTitle) {
+            modalTitle.textContent = "Magdagdag ng Emergency Contact";
+          }
+          if (submitButton) {
+            submitButton.textContent = "I-save ang Contact";
+          }
+        } else {
+          title.innerHTML = "EMERGENCY <br /> CONTACTS";
+          sub.textContent = "Official hotlines and personal contacts";
+          if (addBtnLabel) {
+            addBtnLabel.textContent = "Add Emergency Contact";
+          }
+          if (sectionLabels[0]) {
+            sectionLabels[0].textContent = "Official Emergency Hotlines";
+          }
+          if (sectionLabels[1]) {
+            sectionLabels[1].textContent = "Personal Emergency Contacts";
+          }
+          if (modalTitle) {
+            modalTitle.textContent = "Add Emergency Contact";
+          }
+          if (submitButton) {
+            submitButton.textContent = "Add Contact";
+          }
+        }
+      }
+
+      function applyVisualSettings() {
+        applyTheme(localStorage.getItem("theme") || "light");
+        applyLanguage(localStorage.getItem("language") || "en");
+      }
+
+      applyVisualSettings();
 
       // ── Helpers ──────────────────────────────────────────────────────────────
       function escapeHtml(value) {
@@ -165,6 +234,40 @@
         btn.innerHTML = `<i class="fa-solid fa-trash"></i>`;
         btn.addEventListener("click", onConfirm);
         return btn;
+      }
+
+      function isPermissionDeniedError(error) {
+        if (!error) {
+          return false;
+        }
+
+        return (
+          error.code === "permission-denied" ||
+          String(error.message || "")
+            .toLowerCase()
+            .includes("permission-denied") ||
+          String(error.message || "")
+            .toLowerCase()
+            .includes("missing or insufficient permissions")
+        );
+      }
+
+      function readLocalContacts() {
+        try {
+          const raw = localStorage.getItem(LOCAL_CONTACTS_KEY);
+          const parsed = JSON.parse(raw || "[]");
+          if (!Array.isArray(parsed)) {
+            return [];
+          }
+          return parsed;
+        } catch (error) {
+          console.warn("Failed to read local contacts:", error);
+          return [];
+        }
+      }
+
+      function writeLocalContacts(contacts) {
+        localStorage.setItem(LOCAL_CONTACTS_KEY, JSON.stringify(contacts));
       }
 
       // ── Official hotlines ────────────────────────────────────────────────────
@@ -247,11 +350,15 @@
         return collection(db, "users", uid, "contacts");
       }
 
-      function renderPersonalContacts(contacts) {
+      function renderPersonalContacts(contacts, mode = "firestore") {
         personalList.innerHTML = "";
 
         if (contacts.length === 0) {
-          personalList.innerHTML = `<div class="contact-state">No personal contacts added yet.</div>`;
+          const emptyMessage =
+            mode === "local"
+              ? "No personal contacts saved on this device yet."
+              : "No personal contacts added yet.";
+          personalList.innerHTML = `<div class="contact-state">${emptyMessage}</div>`;
           return;
         }
 
@@ -273,6 +380,15 @@
             makeDeleteButton(async () => {
               if (!confirm(`Remove ${name} from your contacts?`)) return;
               try {
+                if (mode === "local") {
+                  const contacts = readLocalContacts().filter(
+                    (contact) => contact.id !== id,
+                  );
+                  writeLocalContacts(contacts);
+                  renderPersonalContacts(contacts, "local");
+                  return;
+                }
+
                 await deleteDoc(
                   doc(db, "users", currentUser.uid, "contacts", id),
                 );
@@ -291,6 +407,12 @@
       async function loadPersonalContacts(uid) {
         personalList.innerHTML = `<div class="contact-state">Loading your contacts...</div>`;
 
+        if (!db || !uid) {
+          contactStorageMode = "local";
+          renderPersonalContacts(readLocalContacts(), "local");
+          return;
+        }
+
         try {
           const q = query(
             personalContactsRef(uid),
@@ -299,19 +421,23 @@
           const snap = await getDocs(q);
           const contacts = [];
           snap.forEach((d) => contacts.push({ id: d.id, ...d.data() }));
-          renderPersonalContacts(contacts);
+          contactStorageMode = "firestore";
+          renderPersonalContacts(contacts, "firestore");
         } catch (error) {
           console.error("Error loading personal contacts:", error);
+
+          if (isPermissionDeniedError(error)) {
+            contactStorageMode = "local";
+            renderPersonalContacts(readLocalContacts(), "local");
+            return;
+          }
+
           personalList.innerHTML = `<div class="contact-state contact-state-error">Unable to load contacts right now.</div>`;
         }
       }
 
       // ── Add contact form ─────────────────────────────────────────────────────
       addContactBtn.addEventListener("click", () => {
-        if (!currentUser) {
-          alert("Please sign in to add personal emergency contacts.");
-          return;
-        }
         addContactForm.reset();
         addContactModal.style.display = "flex";
       });
@@ -329,8 +455,6 @@
       addContactForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
-        if (!currentUser || !db) return;
-
         const name = document.getElementById("contactName").value.trim();
         const phone = document.getElementById("contactPhone").value.trim();
         const relation = document.getElementById("contactRelation").value;
@@ -341,18 +465,55 @@
         submitBtn.textContent = "Saving...";
 
         try {
-          await addDoc(personalContactsRef(currentUser.uid), {
-            name,
-            phone,
-            relation,
-            createdAt: serverTimestamp(),
-          });
+          const canUseFirestore =
+            Boolean(currentUser && db) && contactStorageMode !== "local";
+
+          if (canUseFirestore) {
+            await addDoc(personalContactsRef(currentUser.uid), {
+              name,
+              phone,
+              relation,
+              createdAt: serverTimestamp(),
+            });
+          } else {
+            const contacts = readLocalContacts();
+            contacts.push({
+              id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              name,
+              phone,
+              relation,
+            });
+            writeLocalContacts(contacts);
+            contactStorageMode = "local";
+          }
 
           addContactModal.style.display = "none";
-          await loadPersonalContacts(currentUser.uid);
+          if (currentUser && contactStorageMode !== "local") {
+            await loadPersonalContacts(currentUser.uid);
+          } else {
+            renderPersonalContacts(readLocalContacts(), "local");
+          }
         } catch (error) {
           console.error("Failed to save contact:", error);
-          alert("Unable to save contact. Please try again.");
+
+          if (isPermissionDeniedError(error)) {
+            const contacts = readLocalContacts();
+            contacts.push({
+              id: `local_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              name,
+              phone,
+              relation,
+            });
+            writeLocalContacts(contacts);
+            contactStorageMode = "local";
+            addContactModal.style.display = "none";
+            renderPersonalContacts(contacts, "local");
+            alert(
+              "Saved on this device only because Firestore permissions are currently denied.",
+            );
+          } else {
+            alert("Unable to save contact. Please try again.");
+          }
         } finally {
           submitBtn.disabled = false;
           submitBtn.textContent = "Add Contact";
@@ -369,10 +530,30 @@
           if (user) {
             loadPersonalContacts(user.uid);
           } else {
-            personalList.innerHTML = `<div class="contact-state">Sign in to view your contacts.</div>`;
+            contactStorageMode = "local";
+            renderPersonalContacts(readLocalContacts(), "local");
           }
         });
+      } else {
+        contactStorageMode = "local";
+        renderPersonalContacts(readLocalContacts(), "local");
       }
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type !== "setting-changed") {
+          return;
+        }
+
+        if (event.data.key === "theme" || event.data.key === "language") {
+          applyVisualSettings();
+        }
+      });
+
+      window.addEventListener("storage", (event) => {
+        if (event.key === "theme" || event.key === "language") {
+          applyVisualSettings();
+        }
+      });
     </script>
   </body>
 </html>

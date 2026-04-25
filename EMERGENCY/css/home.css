@@ -83,6 +83,68 @@ body.app-shell .panel-shell {
   background: transparent;
 }
 
+html.theme-dark,
+body.theme-dark {
+  --primary: #8cd39b;
+  --primary-light: rgba(140, 211, 155, 0.2);
+  --primary-soft: rgba(140, 211, 155, 0.12);
+  background: #0e1418;
+  color: #eaf1f4;
+}
+
+body.theme-dark .screen {
+  background-color: #11161a;
+}
+
+body.theme-dark .panel-shell {
+  background: linear-gradient(
+    180deg,
+    rgba(23, 31, 37, 0.98),
+    rgba(17, 24, 28, 0.92)
+  );
+  border-color: rgba(140, 211, 155, 0.2);
+}
+
+body.theme-dark .profile-value,
+body.theme-dark .sub,
+body.theme-dark p,
+body.theme-dark h1 {
+  color: #d6e1e8;
+}
+
+body.theme-dark .profile-modal-card,
+body.theme-dark .map-modal-card {
+  background: #11161a;
+  border-color: rgba(140, 211, 155, 0.3);
+}
+
+body.theme-dark .profile-row {
+  background: #172027;
+  border-color: rgba(140, 211, 155, 0.22);
+}
+
+body.theme-dark .bottom-nav {
+  background: #172027;
+}
+
+body.theme-dark .bottom-nav div.active {
+  background: #3a4a20;
+}
+
+body.theme-dark .bottom-nav div.active i {
+  color: #8cd39b;
+}
+
+body.theme-dark .card {
+  background: #172027;
+  border-color: rgba(140, 211, 155, 0.3);
+  color: #8cd39b;
+}
+
+body.theme-dark .card p {
+  color: #d6e1e8;
+}
+
 /* TOP BAR */
 .top-bar {
   display: flex;

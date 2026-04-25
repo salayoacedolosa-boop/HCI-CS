@@ -1,97 +1,638 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Settings Content</title>
-  <link rel="stylesheet" href="../css/settings.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-</head>
-<body>
-  <div class="screen">
-    <h1>SETTINGS</h1>
-    <p class="sub">Customize your emergency response preferences</p>
-    <div class="settings-content">
-      <div class="settings-section">
-        <h3 class="section-title"><i class="fa-solid fa-exclamation-triangle"></i>Emergency Settings</h3>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Auto-Call Emergency Contacts</div><div class="setting-desc">Automatically call saved emergency contacts when SOS is triggered</div></div><label class="toggle-switch"><input type="checkbox" id="autoCall" checked><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Location Sharing</div><div class="setting-desc">Share your location with emergency responders</div></div><label class="toggle-switch"><input type="checkbox" id="locationShare" checked><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Emergency Hold Time</div><div class="setting-desc">Time to hold SOS button before calling</div></div><select class="setting-select" id="holdTime"><option value="2">2 seconds</option><option value="3" selected>3 seconds</option><option value="5">5 seconds</option></select></div>
-      </div>
-      <div class="settings-section">
-        <h3 class="section-title"><i class="fa-solid fa-bell"></i>Notifications</h3>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Push Notifications</div><div class="setting-desc">Receive alerts about emergency updates</div></div><label class="toggle-switch"><input type="checkbox" id="pushNotif" checked><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Sound Alerts</div><div class="setting-desc">Play sound when receiving emergency alerts</div></div><label class="toggle-switch"><input type="checkbox" id="soundAlerts" checked><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Vibration</div><div class="setting-desc">Vibrate device for emergency alerts</div></div><label class="toggle-switch"><input type="checkbox" id="vibration" checked><span class="slider"></span></label></div>
-      </div>
-      <div class="settings-section">
-        <h3 class="section-title"><i class="fa-solid fa-user"></i>Profile</h3>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Full Name</div><div class="setting-desc">Your registered name</div></div><div class="setting-value">John Doe</div></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Student ID</div><div class="setting-desc">PLP Student Identification</div></div><div class="setting-value">PLP2024001</div></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Emergency Contact</div><div class="setting-desc">Primary emergency contact number</div></div><div class="setting-value">(02) 8642-0000</div></div>
-      </div>
-      <div class="settings-section">
-        <h3 class="section-title"><i class="fa-solid fa-shield-alt"></i>Privacy & Security</h3>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Location Permissions</div><div class="setting-desc">Allow app to access your location</div></div><label class="toggle-switch"><input type="checkbox" id="locationPerm" checked><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Data Sharing</div><div class="setting-desc">Share anonymous usage data to improve service</div></div><label class="toggle-switch"><input type="checkbox" id="dataShare"><span class="slider"></span></label></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Biometric Lock</div><div class="setting-desc">Require fingerprint/face unlock for app access</div></div><label class="toggle-switch"><input type="checkbox" id="biometricLock"><span class="slider"></span></label></div>
-      </div>
-      <div class="settings-section">
-        <h3 class="section-title"><i class="fa-solid fa-cog"></i>App Settings</h3>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Language</div><div class="setting-desc">App display language</div></div><select class="setting-select" id="language"><option value="en" selected>English</option><option value="tl">Filipino</option></select></div>
-        <div class="setting-item"><div class="setting-info"><div class="setting-name">Theme</div><div class="setting-desc">App appearance theme</div></div><select class="setting-select" id="theme"><option value="light" selected>Light</option><option value="dark">Dark</option><option value="auto">Auto</option></select></div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Settings Content</title>
+    <link rel="stylesheet" href="../css/settings.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="screen">
+      <h1>SETTINGS</h1>
+      <p class="sub">Customize your emergency response preferences</p>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-exclamation-triangle"></i>Emergency Settings
+          </h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Auto-Call Emergency Contacts</div>
+              <div class="setting-desc">
+                Automatically call saved emergency contacts when SOS is
+                triggered
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="autoCall"
+                checked
+                aria-label="Auto-Call Emergency Contacts"
+                title="Auto-Call Emergency Contacts" /><span
+                class="slider"
+              ></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Location Sharing</div>
+              <div class="setting-desc">
+                Share your location with emergency responders
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="locationShare"
+                checked
+                aria-label="Location Sharing"
+                title="Location Sharing" /><span class="slider"></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Emergency Hold Time</div>
+              <div class="setting-desc">
+                Time to hold SOS button before calling
+              </div>
+            </div>
+            <select
+              class="setting-select"
+              id="holdTime"
+              aria-label="Emergency Hold Time"
+              title="Emergency Hold Time"
+            >
+              <option value="2">2 seconds</option>
+              <option value="3" selected>3 seconds</option>
+              <option value="5">5 seconds</option>
+            </select>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-bell"></i>Notifications
+          </h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Push Notifications</div>
+              <div class="setting-desc">
+                Receive alerts about emergency updates
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="pushNotif"
+                checked
+                aria-label="Push Notifications"
+                title="Push Notifications" /><span class="slider"></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Sound Alerts</div>
+              <div class="setting-desc">
+                Play sound when receiving emergency alerts
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="soundAlerts"
+                checked
+                aria-label="Sound Alerts"
+                title="Sound Alerts" /><span class="slider"></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Vibration</div>
+              <div class="setting-desc">
+                Vibrate device for emergency alerts
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="vibration"
+                checked
+                aria-label="Vibration Alerts"
+                title="Vibration Alerts" /><span class="slider"></span
+            ></label>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title"><i class="fa-solid fa-user"></i>Profile</h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Full Name</div>
+              <div class="setting-desc">Your registered name</div>
+            </div>
+            <div class="setting-value" id="profileNameValue">Not available</div>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Student ID</div>
+              <div class="setting-desc">PLP Student Identification</div>
+            </div>
+            <input
+              id="profileStudentIdInput"
+              class="setting-input"
+              type="text"
+              placeholder="Enter student ID"
+              aria-label="Student ID"
+              title="Student ID"
+            />
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Emergency Contact</div>
+              <div class="setting-desc">Primary emergency contact number</div>
+            </div>
+            <input
+              id="profileEmergencyContactInput"
+              class="setting-input"
+              type="tel"
+              placeholder="Enter emergency number"
+              aria-label="Emergency contact number"
+              title="Emergency contact number"
+            />
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Save Profile Details</div>
+              <div class="setting-desc">
+                Save Student ID and emergency number
+              </div>
+            </div>
+            <button
+              id="saveProfileExtrasBtn"
+              type="button"
+              class="setting-action-btn"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-shield-alt"></i>Privacy & Security
+          </h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Location Permissions</div>
+              <div class="setting-desc">Allow app to access your location</div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="locationPerm"
+                checked
+                aria-label="Location Permissions"
+                title="Location Permissions" /><span class="slider"></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Data Sharing</div>
+              <div class="setting-desc">
+                Share anonymous usage data to improve service
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="dataShare"
+                aria-label="Data Sharing"
+                title="Data Sharing" /><span class="slider"></span
+            ></label>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Biometric Lock</div>
+              <div class="setting-desc">
+                Require fingerprint/face unlock for app access
+              </div>
+            </div>
+            <label class="toggle-switch"
+              ><input
+                type="checkbox"
+                id="biometricLock"
+                aria-label="Biometric Lock"
+                title="Biometric Lock" /><span class="slider"></span
+            ></label>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-cog"></i>App Settings
+          </h3>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Language</div>
+              <div class="setting-desc">App display language</div>
+            </div>
+            <select
+              class="setting-select"
+              id="language"
+              aria-label="Language"
+              title="Language"
+            >
+              <option value="en" selected>English</option>
+              <option value="tl">Filipino</option>
+            </select>
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Theme</div>
+              <div class="setting-desc">App appearance theme</div>
+            </div>
+            <select
+              class="setting-select"
+              id="theme"
+              aria-label="Theme"
+              title="Theme"
+            >
+              <option value="light" selected>Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">Auto</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    function loadSettings() {
-      const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
-      toggles.forEach(id => {
-        const saved = localStorage.getItem(id);
-        const element = document.getElementById(id);
-        if (saved !== null && element) {
-          element.checked = saved === 'true';
+    <script type="module">
+      import { initializeApp } from "firebase/app";
+      import { getAuth, onAuthStateChanged } from "firebase/auth";
+      import {
+        collection,
+        getDocs,
+        getFirestore,
+        orderBy,
+        query,
+        doc,
+        getDoc,
+        setDoc,
+        serverTimestamp,
+      } from "firebase/firestore";
+      import { requestLocationPermission } from "../api/location.js";
+      import {
+        requestNotificationPermission,
+        showToast,
+      } from "../api/notifications.js";
+
+      const firebaseConfig = {
+        apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+        authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+        projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+        storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+        appId: import.meta.env.VITE_FIREBASE_APP_ID,
+      };
+
+      const toggleKeys = [
+        "autoCall",
+        "locationShare",
+        "pushNotif",
+        "soundAlerts",
+        "vibration",
+        "locationPerm",
+        "dataShare",
+        "biometricLock",
+      ];
+      const selectKeys = ["holdTime", "language", "theme"];
+      const defaultToggleState = {
+        autoCall: true,
+        locationShare: true,
+        pushNotif: true,
+        soundAlerts: true,
+        vibration: true,
+        locationPerm: true,
+        dataShare: false,
+        biometricLock: false,
+      };
+
+      let auth = null;
+      let db = null;
+      let currentUser = null;
+      const PROFILE_EXTRAS_LOCAL_KEY = "profile_extras_local";
+
+      function getSettingBool(key) {
+        const saved = localStorage.getItem(key);
+        if (saved === null) {
+          return Boolean(defaultToggleState[key]);
         }
-      });
+        return saved === "true";
+      }
 
-      const selects = ['holdTime', 'language', 'theme'];
-      selects.forEach(id => {
-        const saved = localStorage.getItem(id);
-        const element = document.getElementById(id);
-        if (saved && element) {
-          element.value = saved;
+      function getSettingValue(key, fallback) {
+        return localStorage.getItem(key) || fallback;
+      }
+
+      function readLocalProfileExtras() {
+        try {
+          const raw = localStorage.getItem(PROFILE_EXTRAS_LOCAL_KEY);
+          const parsed = JSON.parse(raw || "{}");
+          return typeof parsed === "object" && parsed ? parsed : {};
+        } catch {
+          return {};
         }
-      });
-    }
+      }
 
-    function saveSettings() {
-      const toggles = ['autoCall', 'locationShare', 'pushNotif', 'soundAlerts', 'vibration', 'locationPerm', 'dataShare', 'biometricLock'];
-      toggles.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            localStorage.setItem(id, element.checked);
+      function writeLocalProfileExtras(extras) {
+        localStorage.setItem(PROFILE_EXTRAS_LOCAL_KEY, JSON.stringify(extras));
+      }
+
+      function persistSetting(key, value) {
+        localStorage.setItem(key, String(value));
+        window.parent?.postMessage(
+          { type: "setting-changed", key, value },
+          "*",
+        );
+      }
+
+      function syncThemeAndLanguageFromSettings() {
+        applyTheme(getSettingValue("theme", "light"));
+        applyLanguage(getSettingValue("language", "en"));
+      }
+
+      function applyTheme(theme) {
+        const isDark =
+          theme === "dark" ||
+          (theme === "auto" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+
+        document.documentElement.classList.toggle("theme-dark", isDark);
+        document.body.classList.toggle("theme-dark", isDark);
+      }
+
+      function applyLanguage(language) {
+        const title = document.querySelector("h1");
+        const subtitle = document.querySelector(".sub");
+
+        if (language === "tl") {
+          title.textContent = "MGA SETTING";
+          subtitle.textContent =
+            "I-customize ang iyong emergency response preferences";
+        } else {
+          title.textContent = "SETTINGS";
+          subtitle.textContent =
+            "Customize your emergency response preferences";
+        }
+      }
+
+      async function handleToggleEffect(key, checked, element) {
+        if (key === "pushNotif" && checked) {
+          const result = await requestNotificationPermission();
+          if (!result.success || result.permission !== "granted") {
+            element.checked = false;
+            persistSetting(key, false);
+            showToast("Notification permission not granted.", "error");
+            return;
+          }
+        }
+
+        if (key === "locationPerm" && checked) {
+          const result = await requestLocationPermission();
+          if (!result.granted) {
+            element.checked = false;
+            persistSetting(key, false);
+            showToast(result.message || "Location permission denied.", "error");
+            return;
+          }
+        }
+
+        if (key === "locationPerm" && !checked) {
+          showToast(
+            "Location permission must be changed in device app settings.",
+            "info",
+          );
+        }
+
+        if (key === "biometricLock" && checked) {
+          if (!("PublicKeyCredential" in window)) {
+            element.checked = false;
+            persistSetting(key, false);
+            showToast(
+              "Biometric lock is not supported on this device.",
+              "error",
+            );
+            return;
+          }
+        }
+
+        if (key === "soundAlerts" && checked) {
+          showToast("Sound alerts enabled.", "success");
+        }
+
+        if (key === "vibration" && checked && navigator.vibrate) {
+          navigator.vibrate(120);
+        }
+
+        persistSetting(key, checked);
+      }
+
+      function initializeSettingsUI() {
+        toggleKeys.forEach((key) => {
+          const element = document.getElementById(key);
+          if (!element) {
+            return;
+          }
+
+          element.checked = getSettingBool(key);
+          element.addEventListener("change", async () => {
+            await handleToggleEffect(key, element.checked, element);
           });
-        }
-      });
+        });
 
-      const selects = ['holdTime', 'language', 'theme'];
-      selects.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-          element.addEventListener('change', () => {
-            localStorage.setItem(id, element.value);
+        const holdTimeElement = document.getElementById("holdTime");
+        const languageElement = document.getElementById("language");
+        const themeElement = document.getElementById("theme");
+
+        holdTimeElement.value = getSettingValue("holdTime", "3");
+        languageElement.value = getSettingValue("language", "en");
+        themeElement.value = getSettingValue("theme", "light");
+
+        applyLanguage(languageElement.value);
+        applyTheme(themeElement.value);
+
+        selectKeys.forEach((key) => {
+          const element = document.getElementById(key);
+          if (!element) {
+            return;
+          }
+
+          element.addEventListener("change", () => {
+            persistSetting(key, element.value);
+
+            if (key === "language") {
+              applyLanguage(element.value);
+            }
+
+            if (key === "theme") {
+              applyTheme(element.value);
+            }
+
+            if (key === "holdTime") {
+              showToast(
+                `SOS hold time set to ${element.value} seconds.`,
+                "success",
+              );
+            }
           });
-        }
-      });
-    }
+        });
 
-    document.addEventListener('DOMContentLoaded', () => {
-      loadSettings();
-      saveSettings();
-    });
-  </script>
-</body>
+        window.addEventListener("storage", (event) => {
+          if (event.key === "theme" || event.key === "language") {
+            syncThemeAndLanguageFromSettings();
+          }
+        });
+
+        window.addEventListener("message", (event) => {
+          if (event.data?.type !== "setting-changed") {
+            return;
+          }
+
+          if (event.data.key === "theme" || event.data.key === "language") {
+            syncThemeAndLanguageFromSettings();
+          }
+        });
+      }
+
+      async function saveProfileExtras() {
+        const studentIdInput = document.getElementById("profileStudentIdInput");
+        const emergencyContactInput = document.getElementById(
+          "profileEmergencyContactInput",
+        );
+        const saveBtn = document.getElementById("saveProfileExtrasBtn");
+
+        const studentId = studentIdInput.value.trim();
+        const emergencyContactNumber = emergencyContactInput.value.trim();
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        try {
+          if (currentUser && db) {
+            const userRef = doc(db, "users", currentUser.uid);
+            await setDoc(
+              userRef,
+              {
+                studentId,
+                schoolId: studentId,
+                emergencyContactNumber,
+                emergencyPhone: emergencyContactNumber,
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          } else {
+            writeLocalProfileExtras({ studentId, emergencyContactNumber });
+          }
+
+          showToast("Profile details saved.", "success");
+        } catch (error) {
+          console.error("Unable to save profile details:", error);
+          writeLocalProfileExtras({ studentId, emergencyContactNumber });
+          showToast("Saved on this device only.", "info");
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save";
+        }
+      }
+
+      async function loadProfileValues(user) {
+        const nameEl = document.getElementById("profileNameValue");
+        const studentIdInput = document.getElementById("profileStudentIdInput");
+        const emergencyContactInput = document.getElementById(
+          "profileEmergencyContactInput",
+        );
+        const localExtras = readLocalProfileExtras();
+
+        currentUser = user;
+
+        if (!user || !db) {
+          nameEl.textContent = "Not signed in";
+          studentIdInput.value = localExtras.studentId || "";
+          emergencyContactInput.value =
+            localExtras.emergencyContactNumber || "";
+          return;
+        }
+
+        nameEl.textContent = user.displayName || user.email || "Not available";
+
+        try {
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          let studentId = localExtras.studentId || "";
+          let emergencyContact = localExtras.emergencyContactNumber || "";
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            nameEl.textContent =
+              data.fullName ||
+              data.name ||
+              user.displayName ||
+              user.email ||
+              "Not available";
+            studentId = data.studentId || data.schoolId || studentId;
+            emergencyContact =
+              data.emergencyContactNumber ||
+              data.emergencyPhone ||
+              data.phone ||
+              data.phoneNumber ||
+              emergencyContact;
+          }
+
+          studentIdInput.value = studentId;
+          emergencyContactInput.value = emergencyContact;
+        } catch (error) {
+          console.error("Unable to load profile values for settings:", error);
+          studentIdInput.value = localExtras.studentId || "";
+          emergencyContactInput.value =
+            localExtras.emergencyContactNumber || "";
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", () => {
+        initializeSettingsUI();
+
+        const saveProfileExtrasBtn = document.getElementById(
+          "saveProfileExtrasBtn",
+        );
+        saveProfileExtrasBtn.addEventListener("click", saveProfileExtras);
+
+        const missingKeys = Object.entries(firebaseConfig)
+          .filter(([, value]) => !value)
+          .map(([key]) => key);
+
+        if (missingKeys.length > 0) {
+          console.error(
+            "Missing Firebase config keys:",
+            missingKeys.join(", "),
+          );
+          loadProfileValues(null);
+          return;
+        }
+
+        const app = initializeApp(firebaseConfig);
+        db = getFirestore(app);
+        auth = getAuth(app);
+
+        onAuthStateChanged(auth, (user) => {
+          loadProfileValues(user);
+        });
+      });
+    </script>
+  </body>
 </html>

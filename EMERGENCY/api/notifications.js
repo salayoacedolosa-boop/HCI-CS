@@ -2,6 +2,10 @@
  * Show a native notification (for desktop/PWA)
  */
 export function showNotification(title, options = {}) {
+  if (localStorage.getItem("pushNotif") === "false") {
+    return;
+  }
+
   if (!("Notification" in window)) {
     console.warn("Notifications are not supported by this browser");
     return;
@@ -20,6 +24,26 @@ export function showNotification(title, options = {}) {
       }
     });
   }
+}
+
+function playAlertTone() {
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) {
+    return;
+  }
+
+  const ctx = new AudioContextClass();
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = "sine";
+  oscillator.frequency.value = 880;
+  gain.gain.value = 0.08;
+
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.12);
 }
 
 /**
@@ -65,6 +89,22 @@ export function showToast(message, type = "info", duration = 3000) {
   `;
 
   document.body.appendChild(toast);
+
+  if (localStorage.getItem("soundAlerts") !== "false") {
+    try {
+      playAlertTone();
+    } catch {
+      // Ignore audio errors silently because some environments block autoplay.
+    }
+  }
+
+  if (localStorage.getItem("vibration") !== "false" && navigator.vibrate) {
+    if (type === "error") {
+      navigator.vibrate([80, 40, 80]);
+    } else {
+      navigator.vibrate(80);
+    }
+  }
 
   setTimeout(() => {
     toast.remove();

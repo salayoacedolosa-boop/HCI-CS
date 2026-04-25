@@ -110,6 +110,36 @@ p {
   color: var(--primary);
 }
 
+html.theme-dark,
+body.theme-dark {
+  --primary: #8cd39b;
+  --primary-light: rgba(140, 211, 155, 0.2);
+  --primary-soft: rgba(140, 211, 155, 0.12);
+  --surface: #11161a;
+  background: #0e1418;
+  color: #eaf1f4;
+}
+
+body.theme-dark .screen {
+  background-color: #11161a;
+}
+
+body.theme-dark .sub,
+body.theme-dark h1,
+body.theme-dark .section-title,
+body.theme-dark .contact-number,
+body.theme-dark .contact-location {
+  color: #d6e1e8;
+}
+
+body.theme-dark .contact-item,
+body.theme-dark .modal-content,
+body.theme-dark .contact-state {
+  background: #172027;
+  color: #eaf1f4;
+  box-shadow: none;
+}
+
 /* ADD CONTACT SECTION */
 .add-contact-section {
   padding: 0 14px;

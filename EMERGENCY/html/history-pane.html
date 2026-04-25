@@ -35,6 +35,35 @@
 
       const historyList = document.getElementById("historyList");
 
+      function applyTheme(theme) {
+        const isDark =
+          theme === "dark" ||
+          (theme === "auto" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+        document.documentElement.classList.toggle("theme-dark", isDark);
+        document.body.classList.toggle("theme-dark", isDark);
+      }
+
+      function applyLanguage(language) {
+        const title = document.querySelector("h1");
+        const sub = document.querySelector(".sub");
+
+        if (language === "tl") {
+          title.innerHTML = "TALAAN NG <br /> MGA TAWAG";
+          sub.textContent = "Iyong mga naitalang emergency na tawag";
+        } else {
+          title.innerHTML = "CALL <br /> HISTORY";
+          sub.textContent = "Your emergency call records";
+        }
+      }
+
+      function applyVisualSettings() {
+        applyTheme(localStorage.getItem("theme") || "light");
+        applyLanguage(localStorage.getItem("language") || "en");
+      }
+
+      applyVisualSettings();
+
       const firebaseConfig = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
         authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -308,6 +337,22 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
+        window.addEventListener("message", (event) => {
+          if (event.data?.type !== "setting-changed") {
+            return;
+          }
+
+          if (event.data.key === "theme" || event.data.key === "language") {
+            applyVisualSettings();
+          }
+        });
+
+        window.addEventListener("storage", (event) => {
+          if (event.key === "theme" || event.key === "language") {
+            applyVisualSettings();
+          }
+        });
 
         onAuthStateChanged(auth, (user) => {
           if (!user) {

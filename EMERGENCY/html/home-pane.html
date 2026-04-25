@@ -51,8 +51,38 @@
       let timer = null;
       let holdStarted = false;
       let elapsed = 0;
-      const holdDuration = 3000;
+      let holdDuration = 3000;
       const sosBtn = document.getElementById("sosBtn");
+      const holdHint = document.querySelector(".hint");
+
+      function applyTheme(theme) {
+        const isDark =
+          theme === "dark" ||
+          (theme === "auto" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+        document.documentElement.classList.toggle("theme-dark", isDark);
+        document.body.classList.toggle("theme-dark", isDark);
+      }
+
+      function applyLanguage(language) {
+        const title = document.querySelector("h1");
+        const sub = document.querySelector(".sub");
+
+        if (language === "tl") {
+          title.innerHTML = "PAPARATING <br /> NA ANG TULONG";
+          sub.textContent = "Magsalita nang mahinahon. Sabihin ang nangyari";
+        } else {
+          title.innerHTML = "HELP IS <br /> ON THEIR WAY";
+          sub.textContent = "Speak calmly. Tell us what happened";
+        }
+      }
+
+      function applyVisualSettings() {
+        applyTheme(localStorage.getItem("theme") || "light");
+        applyLanguage(localStorage.getItem("language") || "en");
+      }
+
+      applyVisualSettings();
 
       const progress = document.createElement("p");
       progress.className = "hint";
@@ -60,6 +90,22 @@
       progress.style.color = "#a83232";
       progress.style.marginTop = "10px";
       sosBtn.parentElement.appendChild(progress);
+
+      function getHoldTimeMs() {
+        const saved = Number(localStorage.getItem("holdTime") || 3);
+        const normalized = [2, 3, 5].includes(saved) ? saved : 3;
+        return normalized * 1000;
+      }
+
+      function applyHoldTimeSetting() {
+        holdDuration = getHoldTimeMs();
+        const seconds = holdDuration / 1000;
+        if (holdHint) {
+          holdHint.textContent = `Hold for ${seconds} seconds to call responders`;
+        }
+      }
+
+      applyHoldTimeSetting();
 
       function startSOSTimer() {
         if (holdStarted) {
@@ -108,6 +154,32 @@
         resetSOSTimer();
       });
       sosBtn.addEventListener("touchcancel", resetSOSTimer);
+
+      window.addEventListener("storage", (event) => {
+        if (event.key === "holdTime") {
+          applyHoldTimeSetting();
+        }
+      });
+
+      window.addEventListener("message", (event) => {
+        if (event.data?.type !== "setting-changed") {
+          return;
+        }
+
+        if (event.data?.key === "holdTime") {
+          applyHoldTimeSetting();
+        }
+
+        if (event.data?.key === "theme" || event.data?.key === "language") {
+          applyVisualSettings();
+        }
+      });
+
+      window.addEventListener("storage", (event) => {
+        if (event.key === "theme" || event.key === "language") {
+          applyVisualSettings();
+        }
+      });
 
       function triggerEmergency(type) {
         if (window.parent?.appShell?.triggerEmergency) {

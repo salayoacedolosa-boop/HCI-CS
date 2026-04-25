@@ -240,6 +240,79 @@
         settings: "settings-pane.html",
       };
 
+      function getSettingValue(key, fallback) {
+        return localStorage.getItem(key) || fallback;
+      }
+
+      function getBoolSetting(key, fallback = true) {
+        const value = localStorage.getItem(key);
+        if (value === null) {
+          return fallback;
+        }
+        return value === "true";
+      }
+
+      function applyGlobalTheme(theme) {
+        const isDark =
+          theme === "dark" ||
+          (theme === "auto" &&
+            window.matchMedia?.("(prefers-color-scheme: dark)")?.matches);
+
+        document.documentElement.classList.toggle("theme-dark", isDark);
+        document.body.classList.toggle("theme-dark", isDark);
+      }
+
+      function applyGlobalLanguage(language) {
+        const profileTitle = document.getElementById("profileTitle");
+        const mapTitle = document.getElementById("mapModalTitle");
+        const locationDisplay = document.getElementById("locationDisplay");
+        const userDisplay = document.getElementById("userDisplay");
+
+        if (language === "tl") {
+          if (profileTitle) {
+            profileTitle.textContent = "Aking Impormasyon";
+          }
+          if (mapTitle) {
+            mapTitle.textContent = "Kasalukuyang Lokasyon";
+          }
+          if (!currentLocation && locationDisplay) {
+            locationDisplay.textContent = "Tingnan ang Iyong Lokasyon";
+          }
+          if (!currentUser && userDisplay) {
+            userDisplay.textContent = "Mag-login gamit ang iyong PLP account";
+          }
+        } else {
+          if (profileTitle) {
+            profileTitle.textContent = "My Information";
+          }
+          if (mapTitle) {
+            mapTitle.textContent = "Your Current Location";
+          }
+          if (!currentLocation && locationDisplay) {
+            locationDisplay.textContent = "See your Location";
+          }
+          if (!currentUser && userDisplay) {
+            userDisplay.textContent = "Login using your PLP Account";
+          }
+        }
+      }
+
+      function relaySettingToPane(key, value) {
+        if (panelFrame?.contentWindow) {
+          panelFrame.contentWindow.postMessage(
+            { type: "setting-changed", key, value },
+            "*",
+          );
+        }
+      }
+
+      function applyGlobalPreferences() {
+        const theme = getSettingValue("theme", "light");
+        const language = getSettingValue("language", "en");
+        applyGlobalTheme(theme);
+        applyGlobalLanguage(language);
+      }
+
       // Make functions globally available
       window.goToProfile = goToProfile;
       window.getLocation = getLocation;
@@ -447,6 +520,14 @@
           return;
         }
 
+        if (!getBoolSetting("locationShare", true)) {
+          showToast(
+            "Location sharing is disabled in Settings. Enable it to use SOS.",
+            "error",
+          );
+          return;
+        }
+
         try {
           showToast("Getting your location...", "info");
           const location = await getDeviceLocation();
@@ -455,7 +536,9 @@
           const result = await createSOSIncident(db, currentUser.uid, location);
 
           if (result.success) {
-            await triggerEmergencyHotlineCall();
+            if (getBoolSetting("autoCall", true)) {
+              await triggerEmergencyHotlineCall();
+            }
 
             showAlertModal(
               "SOS ACTIVATED",
@@ -514,6 +597,11 @@
           return;
         }
 
+        if (!getBoolSetting("locationShare", true)) {
+          showToast("Location sharing is disabled in Settings.", "error");
+          return;
+        }
+
         try {
           showToast("Getting location...", "info");
           const location = await getDeviceLocation();
@@ -560,6 +648,14 @@
         if (!currentUser) {
           showToast("Please login first", "error");
           goToProfile();
+          return;
+        }
+
+        if (!getBoolSetting("locationShare", true)) {
+          showToast(
+            "Location sharing is disabled in Settings. Enable it to send emergency incidents.",
+            "error",
+          );
           return;
         }
 
@@ -626,6 +722,11 @@
       function loadPanel(route) {
         const normalizedRoute = panelRoutes[route] ? route : "home";
         panelFrame.src = panelRoutes[normalizedRoute];
+        panelFrame.onload = () => {
+          relaySettingToPane("theme", getSettingValue("theme", "light"));
+          relaySettingToPane("language", getSettingValue("language", "en"));
+          relaySettingToPane("holdTime", getSettingValue("holdTime", "3"));
+        };
         setActiveMenu(normalizedRoute);
 
         const nextUrl =
@@ -671,6 +772,8 @@
       }
 
       window.addEventListener("DOMContentLoaded", () => {
+        applyGlobalPreferences();
+
         if (!auth) {
           showToast(
             "Firebase config missing. Check your .env values.",
@@ -704,6 +807,39 @@
           if (event.key === "Escape") {
             closeProfileModal();
             closeMapModal();
+          }
+        });
+
+        window.addEventListener("message", (event) => {
+          if (event.data?.type !== "setting-changed") {
+            return;
+          }
+
+          if (event.data.key === "theme") {
+            applyGlobalTheme(String(event.data.value));
+          }
+
+          if (event.data.key === "language") {
+            applyGlobalLanguage(String(event.data.value));
+          }
+
+          relaySettingToPane(String(event.data.key), event.data.value);
+        });
+
+        window.addEventListener("storage", (event) => {
+          if (event.key === "theme" || event.key === "language") {
+            applyGlobalPreferences();
+          }
+
+          if (
+            event.key === "theme" ||
+            event.key === "language" ||
+            event.key === "holdTime"
+          ) {
+            relaySettingToPane(
+              event.key,
+              event.newValue || getSettingValue(event.key, ""),
+            );
           }
         });
 
