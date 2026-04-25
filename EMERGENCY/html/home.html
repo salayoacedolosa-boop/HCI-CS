@@ -36,6 +36,118 @@
           </div>
         </div>
 
+        <div id="profileModal" class="profile-modal" aria-hidden="true">
+          <div
+            class="profile-modal-backdrop"
+            onclick="closeProfileModal()"
+          ></div>
+          <div
+            class="profile-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="profileTitle"
+          >
+            <div class="profile-modal-header">
+              <h2 id="profileTitle">My Information</h2>
+              <button
+                type="button"
+                class="profile-modal-close"
+                onclick="closeProfileModal()"
+                aria-label="Close profile"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+
+            <div class="profile-grid">
+              <div class="profile-row">
+                <span class="profile-label">Name</span>
+                <span class="profile-value" id="profileName">Not provided</span>
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Phone Number</span>
+                <span class="profile-value" id="profilePhone"
+                  >Not provided</span
+                >
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Address</span>
+                <span class="profile-value" id="profileAddress"
+                  >Not provided</span
+                >
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">Email</span>
+                <span class="profile-value" id="profileEmail"
+                  >Not provided</span
+                >
+              </div>
+              <div class="profile-row">
+                <span class="profile-label">User ID</span>
+                <span class="profile-value" id="profileUid">Not provided</span>
+              </div>
+            </div>
+
+            <form class="profile-form" onsubmit="saveProfileInfo(event)">
+              <label class="profile-input-label" for="profilePhoneInput"
+                >Phone Number</label
+              >
+              <input
+                id="profilePhoneInput"
+                class="profile-input"
+                type="tel"
+                placeholder="Enter your phone number"
+              />
+
+              <label class="profile-input-label" for="profileAddressInput"
+                >Address</label
+              >
+              <textarea
+                id="profileAddressInput"
+                class="profile-input profile-textarea"
+                rows="3"
+                placeholder="Enter your address"
+              ></textarea>
+
+              <button
+                type="submit"
+                class="profile-save-btn"
+                id="profileSaveBtn"
+              >
+                Save Information
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <div id="mapModal" class="map-modal" aria-hidden="true">
+          <div class="map-modal-backdrop" onclick="closeMapModal()"></div>
+          <div
+            class="map-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mapModalTitle"
+          >
+            <div class="map-modal-header">
+              <h2 id="mapModalTitle">Your Current Location</h2>
+              <button
+                type="button"
+                class="map-modal-close"
+                onclick="closeMapModal()"
+                aria-label="Close map"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <iframe
+              id="mapFrame"
+              class="map-frame"
+              title="Google Maps current location"
+              loading="lazy"
+            ></iframe>
+          </div>
+        </div>
+
         <div class="panel-shell">
           <iframe
             id="panelFrame"
@@ -65,13 +177,22 @@
 
     <script type="module">
       import { initializeApp } from "firebase/app";
-      import { getFirestore } from "firebase/firestore";
+      import {
+        doc,
+        getDoc,
+        getFirestore,
+        serverTimestamp,
+        setDoc,
+      } from "firebase/firestore";
       import { getAuth, onAuthStateChanged } from "firebase/auth";
       import {
         createSOSIncident,
         createEmergencyIncident,
       } from "../api/incidents.js";
-      import { getDeviceLocation } from "../api/location.js";
+      import {
+        getDeviceLocation,
+        requestLocationPermission,
+      } from "../api/location.js";
       import { showToast, showAlertModal } from "../api/notifications.js";
 
       // Firebase Config from environment variables
@@ -105,6 +226,8 @@
       // Global state
       let currentUser = null;
       let currentLocation = null;
+      let currentProfileData = {};
+      let didPromptLocationPermission = false;
       const panelFrame = document.getElementById("panelFrame");
       const panelRoutes = {
         home: "home-pane.html",
@@ -122,6 +245,9 @@
       window.goHistory = goHistory;
       window.goContact = goContact;
       window.goSettings = goSettings;
+      window.closeProfileModal = closeProfileModal;
+      window.closeMapModal = closeMapModal;
+      window.saveProfileInfo = saveProfileInfo;
       window.appShell = {
         triggerEmergency,
         triggerSOS,
@@ -140,13 +266,171 @@
             currentUser = user;
             document.getElementById("userDisplay").textContent =
               `${user.displayName || user.email}`;
+            populateProfileInfo();
             console.log("User logged in:", user.email);
           } else {
             currentUser = null;
             document.getElementById("userDisplay").textContent =
               "Login using your PLP Account";
+            resetProfileInfo();
           }
         });
+      }
+
+      function getProfileField(profile, keys) {
+        for (const key of keys) {
+          const value = profile?.[key];
+          if (
+            value !== undefined &&
+            value !== null &&
+            String(value).trim() !== ""
+          ) {
+            return String(value);
+          }
+        }
+        return "Not provided";
+      }
+
+      function setProfileField(id, value) {
+        document.getElementById(id).textContent = value || "Not provided";
+      }
+
+      function setProfileInputValue(id, value) {
+        const input = document.getElementById(id);
+        input.value = value && value !== "Not provided" ? value : "";
+      }
+
+      function resetProfileInfo() {
+        setProfileField("profileName", "Not provided");
+        setProfileField("profilePhone", "Not provided");
+        setProfileField("profileAddress", "Not provided");
+        setProfileField("profileEmail", "Not provided");
+        setProfileField("profileUid", "Not provided");
+        setProfileInputValue("profilePhoneInput", "");
+        setProfileInputValue("profileAddressInput", "");
+      }
+
+      async function populateProfileInfo() {
+        if (!currentUser) {
+          resetProfileInfo();
+          return;
+        }
+
+        let profileData = {};
+
+        if (db) {
+          try {
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+              profileData = userDocSnap.data();
+            }
+          } catch (error) {
+            console.error("Unable to load profile document:", error);
+          }
+        }
+
+        const nameFromDb = getProfileField(profileData, [
+          "fullName",
+          "name",
+          "displayName",
+        ]);
+        const name =
+          nameFromDb !== "Not provided"
+            ? nameFromDb
+            : currentUser.displayName || "Not provided";
+
+        const phoneFromDb = getProfileField(profileData, [
+          "phone",
+          "phoneNumber",
+          "mobile",
+        ]);
+        const phone =
+          phoneFromDb !== "Not provided"
+            ? phoneFromDb
+            : currentUser.phoneNumber || "Not provided";
+
+        const address = getProfileField(profileData, [
+          "address",
+          "homeAddress",
+          "residentialAddress",
+          "currentAddress",
+        ]);
+
+        setProfileField("profileName", name);
+        setProfileField("profilePhone", phone);
+        setProfileField("profileAddress", address);
+        setProfileField("profileEmail", currentUser.email || "Not provided");
+        setProfileField("profileUid", currentUser.uid || "Not provided");
+
+        setProfileInputValue("profilePhoneInput", phone);
+        setProfileInputValue("profileAddressInput", address);
+
+        currentProfileData = profileData;
+      }
+
+      async function saveProfileInfo(event) {
+        event.preventDefault();
+
+        if (!currentUser) {
+          showToast("Please login first", "error");
+          window.location.href = "login.html";
+          return;
+        }
+
+        if (!db) {
+          showToast("Database is not configured.", "error");
+          return;
+        }
+
+        const phoneInput = document.getElementById("profilePhoneInput");
+        const addressInput = document.getElementById("profileAddressInput");
+        const saveBtn = document.getElementById("profileSaveBtn");
+
+        const phone = phoneInput.value.trim();
+        const address = addressInput.value.trim();
+
+        if (!phone && !address) {
+          showToast("Enter your phone number or address first.", "error");
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          await setDoc(
+            userDocRef,
+            {
+              uid: currentUser.uid,
+              email: currentUser.email || "",
+              displayName: currentUser.displayName || "",
+              fullName:
+                currentProfileData.fullName ||
+                currentProfileData.name ||
+                currentUser.displayName ||
+                "",
+              phone,
+              phoneNumber: phone,
+              address,
+              updatedAt: serverTimestamp(),
+            },
+            { merge: true },
+          );
+
+          showToast("Profile information saved.", "success");
+          await populateProfileInfo();
+        } catch (error) {
+          console.error("Unable to save profile info:", error);
+          showToast(
+            error.message || "Failed to save profile information.",
+            "error",
+          );
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Information";
+        }
       }
 
       /**
@@ -200,13 +484,36 @@
 
           const coordText = `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`;
           document.getElementById("locationDisplay").textContent = coordText;
-          showToast(`Location: ${coordText}`, "success");
+          showToast(`Showing map: ${coordText}`, "success");
+
+          openMapModal(location.latitude, location.longitude);
 
           console.log("Location:", location);
         } catch (error) {
           console.error("Location error:", error);
           showToast("Error: " + error.message, "error");
         }
+      }
+
+      function openMapModal(latitude, longitude) {
+        const mapFrame = document.getElementById("mapFrame");
+        const mapModal = document.getElementById("mapModal");
+        const mapUrl = `https://maps.google.com/maps?q=${encodeURIComponent(
+          `${latitude},${longitude}`,
+        )}&z=16&output=embed`;
+
+        mapFrame.src = mapUrl;
+        mapModal.classList.add("is-open");
+        mapModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeMapModal() {
+        const mapModal = document.getElementById("mapModal");
+        const mapFrame = document.getElementById("mapFrame");
+
+        mapModal.classList.remove("is-open");
+        mapModal.setAttribute("aria-hidden", "true");
+        mapFrame.src = "";
       }
 
       /**
@@ -245,8 +552,22 @@
       /**
        * Navigation functions
        */
-      function goToProfile() {
-        window.location.href = "login.html";
+      async function goToProfile() {
+        if (!currentUser) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        await populateProfileInfo();
+        const profileModal = document.getElementById("profileModal");
+        profileModal.classList.add("is-open");
+        profileModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeProfileModal() {
+        const profileModal = document.getElementById("profileModal");
+        profileModal.classList.remove("is-open");
+        profileModal.setAttribute("aria-hidden", "true");
       }
 
       function goHome() {
@@ -287,6 +608,31 @@
         );
       }
 
+      async function promptLocationPermissionOnStart() {
+        if (didPromptLocationPermission) {
+          return;
+        }
+
+        didPromptLocationPermission = true;
+
+        try {
+          const permission = await requestLocationPermission();
+          if (!permission.granted) {
+            showToast(
+              permission.message ||
+                "Please allow location permission for emergency features.",
+              "error",
+            );
+          }
+        } catch (error) {
+          console.error("Permission prompt error:", error);
+          showToast(
+            "Unable to request location permission automatically.",
+            "error",
+          );
+        }
+      }
+
       window.addEventListener("DOMContentLoaded", () => {
         if (!auth) {
           showToast(
@@ -305,6 +651,15 @@
               loadPanel(item.dataset.route);
             });
           });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeProfileModal();
+            closeMapModal();
+          }
+        });
+
+        promptLocationPermissionOnStart();
       });
     </script>
   </body>
