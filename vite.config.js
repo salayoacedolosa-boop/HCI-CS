@@ -2,7 +2,7 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 
 export default defineConfig({
-  root: resolve(__dirname, "EMERGENCY/html"),
+  root: resolve(__dirname),
   envDir: __dirname,
   build: {
     outDir: resolve(__dirname, "dist"),
@@ -24,11 +24,21 @@ export default defineConfig({
         ),
         "contact-pane": resolve(__dirname, "EMERGENCY/html/contact-pane.html"),
         loading: resolve(__dirname, "EMERGENCY/html/loading page.html"),
+        "admin-login": resolve(__dirname, "ADMIN SIDE/html/login.html"),
+        "admin-menu": resolve(__dirname, "ADMIN SIDE/html/menu.html"),
+        "admin-map": resolve(__dirname, "ADMIN SIDE/html/map.html"),
+        "admin-incidents": resolve(__dirname, "ADMIN SIDE/html/incidents.html"),
+        "admin-responders": resolve(
+          __dirname,
+          "ADMIN SIDE/html/responders.html",
+        ),
+        "admin-reports": resolve(__dirname, "ADMIN SIDE/html/reports.html"),
+        "admin-settings": resolve(__dirname, "ADMIN SIDE/html/settings.html"),
       },
     },
   },
   server: {
     port: 5173,
-    open: "/index.html",
+    open: "/EMERGENCY/html/index.html",
   },
 });

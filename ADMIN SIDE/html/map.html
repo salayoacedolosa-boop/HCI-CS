@@ -1,129 +1,275 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Emergency Command Map</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Command Map</title>
 
-<link rel="stylesheet" href="../css/map.css">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/map.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+  </head>
 
-<!-- GOOGLE MAP -->
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+  <body>
+    <!-- MAP -->
+    <div id="map"></div>
 
-</head>
-
-<body>
-
-<!-- MAP -->
-<div id="map"></div>
-
-<!-- RIGHT PANEL -->
-<div class="panel">
-
-    <div class="panel-header">
+    <!-- RIGHT PANEL -->
+    <div class="panel">
+      <div class="panel-header">
         <h3>Sending Units</h3>
         <span>#01</span>
-    </div>
+      </div>
 
-     <!-- CALLER -->
+      <!-- CALLER -->
       <label for="name">Caller Information</label>
-      <input type="text" id="name" placeholder="Caller Name">
-           <!-- CONTACT -->
-      <input type="text" id="contact" placeholder="Contact Number">
+      <input type="text" id="name" placeholder="Caller Name" />
+      <!-- CONTACT -->
+      <input type="text" id="contact" placeholder="Contact Number" />
 
-
-    <!-- UNIT -->
-    <label>Which unit to send?</label>
-    <div class="btn-group" id="unitGroup">
+      <!-- UNIT -->
+      <label>Which unit to send?</label>
+      <div class="btn-group" id="unitGroup">
         <button class="active">Police</button>
         <button>Fire</button>
         <button>Rescue</button>
         <button>Medical</button>
-    </div>
+      </div>
 
-    <!-- TYPE -->
-    <label>Type of incident</label>
-    <select>
+      <!-- TYPE -->
+      <label>Type of incident</label>
+      <select id="incidentType" title="Incident type">
         <option>Fire</option>
         <option>Medical</option>
         <option>Accident</option>
         <option>Security</option>
-    </select>
+      </select>
 
-    <!-- PROBLEM -->
-    <label>What is the problem?</label>
-    <input type="text" placeholder="Describe incident...">
+      <!-- PROBLEM -->
+      <label>What is the problem?</label>
+      <input type="text" id="problemText" placeholder="Describe incident..." />
 
-    <hr>
+      <hr />
 
-    <!-- VICTIMS -->
-    <label>How many victims?</label>
-    <div class="btn-group small">
+      <!-- VICTIMS -->
+      <label>How many victims?</label>
+      <div class="btn-group small" id="victimGroup">
         <button>No one</button>
         <button class="active">1-4</button>
         <button>5-9</button>
         <button>Over 10</button>
-    </div>
+      </div>
 
-    <!-- AGGRESSORS -->
-    <label>How many aggressors?</label>
-    <div class="btn-group small">
+      <!-- AGGRESSORS -->
+      <label>How many aggressors?</label>
+      <div class="btn-group small" id="aggressorGroup">
         <button>Single</button>
         <button class="active">2-4</button>
         <button>5-9</button>
         <button>Over 10</button>
+      </div>
+
+      <!-- RANGE -->
+      <label for="dangerRange">Rate the danger level</label>
+      <input
+        type="range"
+        id="dangerRange"
+        class="range"
+        min="1"
+        max="10"
+        value="5"
+        title="Danger level: 5"
+      />
+      <div class="range-value">
+        Danger level: <span id="dangerValue">5</span>/10
+      </div>
+
+      <div class="panel-footer">
+        <button class="send-btn" id="sendUnitsBtn">Send Units</button>
+      </div>
     </div>
 
-    <!-- RANGE -->
-    <label for="dangerRange">Rate the danger level</label>
-      <input type="range" id="dangerRange" class="range" min="1" max="10" value="5" title="Danger level: 5">
-      <div class="range-value">Danger level: <span id="dangerValue">5</span>/10</div>
+    <script type="module">
+      import {
+        createManualIncident,
+        inferIncidentLocation,
+        logDispatch,
+        requireAdminSession,
+        subscribeActiveIncidents,
+        updateIncidentStatus,
+      } from "../api/firebase_admin.js";
 
-    <div class="panel-footer">
-        <button class="send-btn">Send Units</button>
-    </div>
+      let map;
+      let markerRegistry = new Map();
+      let selectedIncident = null;
 
-</div>
+      function getSelectedText(groupSelector) {
+        const activeButton = document.querySelector(
+          `${groupSelector} button.active`,
+        );
+        return activeButton ? activeButton.textContent.trim() : "";
+      }
 
-<script>
+      function setFormFromIncident(incident) {
+        selectedIncident = incident;
 
-let map;
+        document.getElementById("name").value =
+          incident.callerName || "Unknown Caller";
+        document.getElementById("contact").value = incident.contact || "";
+        document.getElementById("incidentType").value = incident.type
+          ? String(incident.type).charAt(0).toUpperCase() +
+            String(incident.type).slice(1)
+          : "Security";
+        document.getElementById("problemText").value =
+          incident.description || "";
+      }
 
-/* MAP INIT */
-function initMap() {
-    map = new google.maps.Map(document.getElementById("map"), {
-        center: { lat: 14.5764, lng: 121.0851 },
-        zoom: 17,
-        styles: [
-            { elementType: "geometry", stylers: [{ color: "#0f1a13" }] },
-            { featureType: "road", stylers: [{ color: "#1e293b" }] },
-            { featureType: "water", stylers: [{ color: "#020617" }] }
-        ]
-    });
-}
+      function addOrUpdateMarker(incident) {
+        if (
+          !incident.location ||
+          typeof incident.location.lat !== "number" ||
+          typeof incident.location.lng !== "number"
+        ) {
+          return;
+        }
 
-/* BUTTON ACTIVE */
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll(".btn-group button").forEach(btn => {
-        btn.addEventListener("click", function () {
-            const group = this.parentElement;
-            group.querySelectorAll("button").forEach(b => b.classList.remove("active"));
-            this.classList.add("active");
+        const markerText = `${incident.type || "incident"} - ${inferIncidentLocation(incident)}`;
+        if (markerRegistry.has(incident.id)) {
+          markerRegistry
+            .get(incident.id)
+            .setLatLng([incident.location.lat, incident.location.lng]);
+          markerRegistry.get(incident.id).bindPopup(markerText);
+          return;
+        }
+
+        const marker = L.marker([incident.location.lat, incident.location.lng])
+          .addTo(map)
+          .bindPopup(markerText);
+
+        marker.on("click", () => setFormFromIncident(incident));
+        markerRegistry.set(incident.id, marker);
+      }
+
+      function removeMissingMarkers(currentIncidents) {
+        const ids = new Set(currentIncidents.map((incident) => incident.id));
+        markerRegistry.forEach((marker, id) => {
+          if (ids.has(id)) {
+            return;
+          }
+
+          map.removeLayer(marker);
+          markerRegistry.delete(id);
         });
-    });
-});
+      }
 
-const dangerRange = document.getElementById("dangerRange");
-const dangerValue = document.getElementById("dangerValue");
+      async function sendUnits() {
+        const callerName = document.getElementById("name").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+        const type = document
+          .getElementById("incidentType")
+          .value.toLowerCase();
+        const description = document.getElementById("problemText").value.trim();
+        const unit = getSelectedText("#unitGroup") || "Police";
+        const victims = getSelectedText("#victimGroup") || "1-4";
+        const aggressors = getSelectedText("#aggressorGroup") || "2-4";
+        const dangerLevel = Number(
+          document.getElementById("dangerRange").value || 5,
+        );
 
-if (dangerRange && dangerValue) {
-    dangerRange.addEventListener("input", function() {
-        dangerValue.textContent = this.value;
-        this.title = `Danger level: ${this.value}`;
-    });
-}
+        if (!callerName || !contact) {
+          alert("Caller name and contact are required.");
+          return;
+        }
 
-</script>
+        if (selectedIncident) {
+          await updateIncidentStatus(selectedIncident.id, "dispatched");
+          await logDispatch({
+            incidentId: selectedIncident.id,
+            receiver: unit,
+            status: "Delivered",
+            message: `Units dispatched for ${selectedIncident.type || "incident"}`,
+          });
+          alert("Units sent for selected incident.");
+          return;
+        }
 
-</body>
+        await createManualIncident({
+          callerName,
+          contact,
+          type,
+          description,
+          status: "dispatched",
+          unit,
+          victims,
+          aggressors,
+          dangerLevel,
+          location: {
+            label: "Pinned from command map",
+            lat: map.getCenter().lat,
+            lng: map.getCenter().lng,
+            accuracy: null,
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        await logDispatch({
+          receiver: unit,
+          status: "Delivered",
+          message: `Manual dispatch created for ${type}`,
+        });
+
+        alert("Manual dispatch incident created.");
+      }
+
+      await requireAdminSession({ autoRedirect: true });
+
+      map = L.map("map", {
+        zoomControl: true,
+      }).setView([14.5764, 121.0851], 17);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 20,
+        attribution: "&copy; OpenStreetMap contributors",
+      }).addTo(map);
+
+      document.querySelectorAll(".btn-group button").forEach((button) => {
+        button.addEventListener("click", function () {
+          const group = this.parentElement;
+          group
+            .querySelectorAll("button")
+            .forEach((entry) => entry.classList.remove("active"));
+          this.classList.add("active");
+        });
+      });
+
+      document
+        .getElementById("dangerRange")
+        .addEventListener("input", function () {
+          document.getElementById("dangerValue").textContent = this.value;
+          this.title = `Danger level: ${this.value}`;
+        });
+
+      document
+        .getElementById("sendUnitsBtn")
+        .addEventListener("click", sendUnits);
+
+      subscribeActiveIncidents((incidents) => {
+        incidents.forEach(addOrUpdateMarker);
+        removeMissingMarkers(incidents);
+      });
+    </script>
+  </body>
 </html>

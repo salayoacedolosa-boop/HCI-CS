@@ -65,18 +65,6 @@
                 <span class="profile-value" id="profileName">Not provided</span>
               </div>
               <div class="profile-row">
-                <span class="profile-label">Phone Number</span>
-                <span class="profile-value" id="profilePhone"
-                  >Not provided</span
-                >
-              </div>
-              <div class="profile-row">
-                <span class="profile-label">Address</span>
-                <span class="profile-value" id="profileAddress"
-                  >Not provided</span
-                >
-              </div>
-              <div class="profile-row">
                 <span class="profile-label">Email</span>
                 <span class="profile-value" id="profileEmail"
                   >Not provided</span
@@ -108,6 +96,16 @@
                 rows="3"
                 placeholder="Enter your address"
               ></textarea>
+
+              <label class="profile-input-label" for="profileStudentIdInput"
+                >Student ID</label
+              >
+              <input
+                id="profileStudentIdInput"
+                class="profile-input"
+                type="text"
+                placeholder="Enter your student ID"
+              />
 
               <button
                 type="submit"
@@ -232,6 +230,7 @@
       let currentLocation = null;
       let currentProfileData = {};
       let didPromptLocationPermission = false;
+      const PROFILE_EXTRAS_LOCAL_KEY = "profile_extras_local";
       const panelFrame = document.getElementById("panelFrame");
       const panelRoutes = {
         home: "home-pane.html",
@@ -250,6 +249,20 @@
           return fallback;
         }
         return value === "true";
+      }
+
+      function readLocalProfileExtras() {
+        try {
+          const raw = localStorage.getItem(PROFILE_EXTRAS_LOCAL_KEY);
+          const parsed = JSON.parse(raw || "{}");
+          return typeof parsed === "object" && parsed ? parsed : {};
+        } catch {
+          return {};
+        }
+      }
+
+      function writeLocalProfileExtras(extras) {
+        localStorage.setItem(PROFILE_EXTRAS_LOCAL_KEY, JSON.stringify(extras));
       }
 
       function applyGlobalTheme(theme) {
@@ -379,12 +392,11 @@
 
       function resetProfileInfo() {
         setProfileField("profileName", "Not provided");
-        setProfileField("profilePhone", "Not provided");
-        setProfileField("profileAddress", "Not provided");
         setProfileField("profileEmail", "Not provided");
         setProfileField("profileUid", "Not provided");
         setProfileInputValue("profilePhoneInput", "");
         setProfileInputValue("profileAddressInput", "");
+        setProfileInputValue("profileStudentIdInput", "");
       }
 
       async function populateProfileInfo() {
@@ -393,6 +405,7 @@
           return;
         }
 
+        const localExtras = readLocalProfileExtras();
         let profileData = {};
 
         if (db) {
@@ -434,14 +447,31 @@
           "currentAddress",
         ]);
 
+        const studentId = getProfileField(profileData, [
+          "studentId",
+          "schoolId",
+        ]);
+
         setProfileField("profileName", name);
-        setProfileField("profilePhone", phone);
-        setProfileField("profileAddress", address);
         setProfileField("profileEmail", currentUser.email || "Not provided");
         setProfileField("profileUid", currentUser.uid || "Not provided");
 
-        setProfileInputValue("profilePhoneInput", phone);
-        setProfileInputValue("profileAddressInput", address);
+        setProfileInputValue(
+          "profilePhoneInput",
+          phone !== "Not provided"
+            ? phone
+            : localExtras.phone || localExtras.phoneNumber || "",
+        );
+        setProfileInputValue(
+          "profileAddressInput",
+          address !== "Not provided" ? address : localExtras.address || "",
+        );
+        setProfileInputValue(
+          "profileStudentIdInput",
+          studentId !== "Not provided"
+            ? studentId
+            : localExtras.studentId || "",
+        );
 
         currentProfileData = profileData;
       }
@@ -462,13 +492,15 @@
 
         const phoneInput = document.getElementById("profilePhoneInput");
         const addressInput = document.getElementById("profileAddressInput");
+        const studentIdInput = document.getElementById("profileStudentIdInput");
         const saveBtn = document.getElementById("profileSaveBtn");
 
         const phone = phoneInput.value.trim();
         const address = addressInput.value.trim();
+        const studentId = studentIdInput.value.trim();
 
-        if (!phone && !address) {
-          showToast("Enter your phone number or address first.", "error");
+        if (!phone && !address && !studentId) {
+          showToast("Enter at least one profile field first.", "error");
           return;
         }
 
@@ -491,10 +523,19 @@
               phone,
               phoneNumber: phone,
               address,
+              studentId,
+              schoolId: studentId,
               updatedAt: serverTimestamp(),
             },
             { merge: true },
           );
+
+          writeLocalProfileExtras({
+            studentId,
+            phone,
+            phoneNumber: phone,
+            address,
+          });
 
           showToast("Profile information saved.", "success");
           await populateProfileInfo();

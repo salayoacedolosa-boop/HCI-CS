@@ -1,201 +1,227 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Reports & Analytics</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports & Analytics</title>
 
-<link rel="stylesheet" href="../css/reports.css">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../css/reports.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
 
-</head>
+  <body>
+    <div class="header">
+      <h2>Reports & Analytics</h2>
+    </div>
 
-<body>
+    <h3 class="section-title">Real-Time Operations</h3>
 
-<div class="header">
-    <h2> Reports & Analytics</h2>
-</div>
-
-<h3 class="section-title">Real-Time Operations</h3>
-
-<div class="stats-grid">
-    <div class="stat-card">
+    <div class="stats-grid">
+      <div class="stat-card">
         <h3>Active Incidents</h3>
         <p id="activeIncidents">0</p>
-    </div>
-    <div class="stat-card">
+      </div>
+      <div class="stat-card">
         <h3>Available Responders</h3>
         <p>5</p>
-    </div>
-    <div class="stat-card">
+      </div>
+      <div class="stat-card">
         <h3>Evacuation</h3>
         <p>78%</p>
+      </div>
     </div>
-</div>
 
-<!-- SIDE BY SIDE -->
-<div class="row-flex">
-
-    <div class="chart-container chart-small">
+    <!-- SIDE BY SIDE -->
+    <div class="row-flex">
+      <div class="chart-container chart-small">
         <h3>Incident Distribution</h3>
         <canvas id="incidentChart"></canvas>
-    </div>
+      </div>
 
-    <div class="chart-container table-side">
+      <div class="chart-container table-side">
         <h3>Incident Documentation</h3>
         <table class="report-table">
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>Location</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="incidentTable"></tbody>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Location</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="incidentTable"></tbody>
         </table>
+      </div>
     </div>
 
-</div>
-
-<!-- =========================
+    <!-- =========================
    📡 COMMUNICATION LOGS
 ========================= -->
-<h3 class="section-title">Communication Logs</h3>
+    <h3 class="section-title">Communication Logs</h3>
 
-<div class="chart-container">
-    <table class="report-table">
+    <div class="chart-container">
+      <table class="report-table">
         <thead>
-            <tr>
-                <th>Message</th>
-                <th>Receiver</th>
-                <th>Status</th>
-                <th>Time</th>
-            </tr>
+          <tr>
+            <th>Message</th>
+            <th>Receiver</th>
+            <th>Status</th>
+            <th>Time</th>
+          </tr>
         </thead>
         <tbody id="logTable"></tbody>
-    </table>
-</div>
+      </table>
+    </div>
 
-<script>
+    <script type="module">
+      import {
+        formatTimestamp,
+        getIncidentTypeLabel,
+        inferIncidentLocation,
+        requireAdminSession,
+        subscribeCommunicationLogs,
+        subscribeHotlines,
+        subscribeIncidents,
+      } from "../api/firebase_admin.js";
 
-/* =========================
-   INCIDENT DATA
-========================= */
-const incidents = [
-    {time:"10:30 AM", location:"Room 101", type:"Fire", status:"Active"},
-    {time:"09:20 AM", location:"Clinic", type:"Medical", status:"Resolved"},
-    {time:"08:00 AM", location:"Hallway", type:"Accident", status:"Active"},
-    {time:"07:30 AM", location:"Gate", type:"Others", status:"Resolved"}
-];
+      const activeIncidentsEl = document.getElementById("activeIncidents");
+      const incidentTable = document.getElementById("incidentTable");
+      const logTable = document.getElementById("logTable");
+      const responderCountEl = document.querySelector(
+        ".stats-grid .stat-card:nth-child(2) p",
+      );
+      const evacuationEl = document.querySelector(
+        ".stats-grid .stat-card:nth-child(3) p",
+      );
 
-/* LOAD INCIDENT TABLE */
-incidents.forEach(i => {
-    document.getElementById("incidentTable").innerHTML += `
-        <tr>
-            <td>${i.time}</td>
-            <td>${i.location}</td>
-            <td>${i.type}</td>
-            <td>${i.status}</td>
-        </tr>`;
-});
+      const ctx = document.getElementById("incidentChart").getContext("2d");
 
-/* COUNT ACTIVE */
-document.getElementById("activeIncidents").innerText =
-    incidents.filter(i => i.status === "Active").length;
+      const fireGradient = ctx.createLinearGradient(0, 0, 0, 250);
+      fireGradient.addColorStop(0, "#ff7b00");
+      fireGradient.addColorStop(1, "#ff3c00");
 
-/* =========================
-   📡 COMMUNICATION LOGS DATA
-========================= */
-const logs = [
-    {msg:"Alert sent", receiver:"PLP Clinic", status:"Delivered", time:"10:31"},
-    {msg:"Acknowledged", receiver:"Police Station (Rosario)", status:"Confirmed", time:"10:32"}
-];
+      const medicalGradient = ctx.createLinearGradient(0, 0, 0, 250);
+      medicalGradient.addColorStop(0, "#ff4d4d");
+      medicalGradient.addColorStop(1, "#b30000");
 
-logs.forEach(l => {
-    document.getElementById("logTable").innerHTML += `
-        <tr>
-            <td>${l.msg}</td>
-            <td>${l.receiver}</td>
-            <td>${l.status}</td>
-            <td>${l.time}</td>
-        </tr>`;
-});
+      const accidentGradient = ctx.createLinearGradient(0, 0, 0, 250);
+      accidentGradient.addColorStop(0, "#ffd633");
+      accidentGradient.addColorStop(1, "#e6ac00");
 
-/* =========================
-   👥 PERSONNEL DATA
-========================= */
-const personnel = [
-    {name:"John", status:"Safe", location:"Lobby", incident:"Fire"},
-    {name:"Anna", status:"Evacuating", location:"Hallway", incident:"Medical"}
-];
+      const otherGradient = ctx.createLinearGradient(0, 0, 0, 250);
+      otherGradient.addColorStop(0, "#9e9e9e");
+      otherGradient.addColorStop(1, "#4f4f4f");
 
-personnel.forEach(p => {
-    document.getElementById("personnelTable").innerHTML += `
-        <tr>
-            <td>${p.name}</td>
-            <td>${p.status}</td>
-            <td>${p.location}</td>
-            <td>${p.incident}</td>
-        </tr>`;
-});
-
-/* =========================
-   📊 CHART DATA
-========================= */
-let fire=0, medical=0, accident=0, other=0;
-
-incidents.forEach(i=>{
-    if(i.type==="Fire") fire++;
-    else if(i.type==="Medical") medical++;
-    else if(i.type==="Accident") accident++;
-    else other++;
-});
-
-/* CHART */
-const ctx = document.getElementById("incidentChart").getContext("2d");
-
-const fireGradient = ctx.createLinearGradient(0,0,0,250);
-fireGradient.addColorStop(0,"#ff7b00");
-fireGradient.addColorStop(1,"#ff3c00");
-
-const medicalGradient = ctx.createLinearGradient(0,0,0,250);
-medicalGradient.addColorStop(0,"#ff4d4d");
-medicalGradient.addColorStop(1,"#b30000");
-
-const accidentGradient = ctx.createLinearGradient(0,0,0,250);
-accidentGradient.addColorStop(0,"#ffd633");
-accidentGradient.addColorStop(1,"#e6ac00");
-
-const otherGradient = ctx.createLinearGradient(0,0,0,250);
-otherGradient.addColorStop(0,"#9e9e9e");
-otherGradient.addColorStop(1,"#4f4f4f");
-
-new Chart(ctx,{
-    type:'bar',
-    data:{
-        labels:['Fire','Medical','Accident','Others'],
-        datasets:[{
-            data:[fire,medical,accident,other],
-            backgroundColor:[
+      const chart = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: ["Fire", "Medical", "Accident", "Others"],
+          datasets: [
+            {
+              data: [0, 0, 0, 0],
+              backgroundColor: [
                 fireGradient,
                 medicalGradient,
                 accidentGradient,
-                otherGradient
-            ],
-            borderRadius:6
-        }]
-    },
-    options:{
-        plugins:{legend:{display:false}},
-        scales:{
-            x:{ticks:{color:"#ccc"},grid:{display:false}},
-            y:{ticks:{color:"#ccc"},grid:{color:"rgba(255,255,255,0.05)"}}
-        }
-    }
-});
+                otherGradient,
+              ],
+              borderRadius: 6,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: "#ccc" }, grid: { display: false } },
+            y: {
+              ticks: { color: "#ccc" },
+              grid: { color: "rgba(255,255,255,0.05)" },
+            },
+          },
+        },
+      });
 
-</script>
+      function updateChart(incidents) {
+        let fire = 0;
+        let medical = 0;
+        let accident = 0;
+        let other = 0;
 
-</body>
+        incidents.forEach((incident) => {
+          const type = String(incident.type || "").toLowerCase();
+          if (type === "fire") fire += 1;
+          else if (type === "medical") medical += 1;
+          else if (type === "accident") accident += 1;
+          else other += 1;
+        });
+
+        chart.data.datasets[0].data = [fire, medical, accident, other];
+        chart.update();
+      }
+
+      function renderIncidentRows(incidents) {
+        incidentTable.innerHTML = "";
+
+        incidents.slice(0, 20).forEach((incident) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${formatTimestamp(incident.createdAt)}</td>
+            <td>${inferIncidentLocation(incident)}</td>
+            <td>${getIncidentTypeLabel(incident.type)}</td>
+            <td>${String(incident.status || "active").toUpperCase()}</td>
+        `;
+          incidentTable.appendChild(row);
+        });
+      }
+
+      function renderLogs(logs) {
+        logTable.innerHTML = "";
+
+        logs.slice(0, 30).forEach((log) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${log.message || "-"}</td>
+            <td>${log.receiver || "-"}</td>
+            <td>${log.status || "-"}</td>
+            <td>${formatTimestamp(log.createdAt)}</td>
+        `;
+          logTable.appendChild(row);
+        });
+      }
+
+      await requireAdminSession({ autoRedirect: true });
+
+      subscribeIncidents((incidents) => {
+        const activeCount = incidents.filter((incident) => {
+          const status = String(incident.status || "").toLowerCase();
+          return status === "active" || status === "dispatched";
+        }).length;
+
+        activeIncidentsEl.textContent = String(activeCount);
+        renderIncidentRows(incidents);
+        updateChart(incidents);
+
+        const resolved = incidents.filter(
+          (incident) =>
+            String(incident.status || "").toLowerCase() === "resolved",
+        ).length;
+        const evacuationRate = incidents.length
+          ? Math.round((resolved / incidents.length) * 100)
+          : 0;
+        evacuationEl.textContent = `${evacuationRate}%`;
+      });
+
+      subscribeCommunicationLogs((logs) => {
+        renderLogs(logs);
+      });
+
+      subscribeHotlines((hotlines) => {
+        responderCountEl.textContent = String(hotlines.length);
+      });
+    </script>
+  </body>
 </html>

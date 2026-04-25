@@ -1,198 +1,235 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Emergency Hotlines</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Hotlines</title>
 
-<link rel="stylesheet" href="../css/responders.css">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/responders.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
 
-</head>
+  <body>
+    <div class="header">
+      <h2>Responders Hotlines</h2>
 
-<body>
-
-<div class="header">
-    <h2>Responders Hotlines</h2>
-
-    <button class="add-btn" onclick="openModal()">
+      <button class="add-btn" onclick="openModal()">
         <i class="fa fa-plus"></i> Add Hotline
-    </button>
-</div>
-
-<!-- 🔍 CONTROLS -->
-<div class="controls">
-
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search...">
-        <i class="fa fa-search"></i>
+      </button>
     </div>
 
-    <div class="custom-select" id="customSelect">
+    <!-- 🔍 CONTROLS -->
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <i class="fa fa-search"></i>
+      </div>
+
+      <div class="custom-select" id="customSelect">
         <div class="select-selected">All</div>
 
         <div class="select-items">
-            <div data-value="all">All</div>
-            <div data-value="Police">Police</div>
-            <div data-value="Fire">Fire</div>
-            <div data-value="Rescue">Rescue</div>
-            <div data-value="Medical">Medical</div>
+          <div data-value="all">All</div>
+          <div data-value="Police">Police</div>
+          <div data-value="Fire">Fire</div>
+          <div data-value="Rescue">Rescue</div>
+          <div data-value="Medical">Medical</div>
         </div>
+      </div>
     </div>
 
-</div>
-
-<div class="hotline-grid" id="hotlineContainer">
-
-    <div class="hotline-card" data-name="plp clinic" data-type="Medical">
+    <div class="hotline-grid" id="hotlineContainer">
+      <div class="hotline-card" data-name="plp clinic" data-type="Medical">
         <div class="icon"><i class="fa fa-hospital"></i></div>
         <h3>PLP Clinic</h3>
         <p>(02) 8642-1234</p>
         <span>MEDICAL SERVICES</span>
         <small>Head: Dr. Santos</small>
 
-        <button class="call-btn" onclick="callHotline('(02)86421234')">
-            <i class="fa fa-phone"></i>
+        <button
+          class="call-btn"
+          onclick="callHotline('(02)86421234')"
+          title="Call hotline"
+        >
+          <i class="fa fa-phone"></i>
         </button>
+      </div>
     </div>
 
-</div>
-
-<!-- MODAL -->
-<div class="modal" id="hotlineModal">
-    <div class="modal-content emergency">
-
+    <!-- MODAL -->
+    <div class="modal" id="hotlineModal">
+      <div class="modal-content emergency">
         <div class="modal-header">
-            <h3>Add Hotline</h3>
-            <span class="close" onclick="closeModal()">&times;</span>
+          <h3>Add Hotline</h3>
+          <span class="close" onclick="closeModal()">&times;</span>
         </div>
 
         <div class="modal-body">
+          <input type="text" id="orgName" placeholder="Organization Name" />
+          <input type="text" id="contact" placeholder="Contact Number" />
 
-            <input type="text" id="orgName" placeholder="Organization Name">
-            <input type="text" id="contact" placeholder="Contact Number">
+          <!-- ✅ FIXED (ONLY SELECT) -->
+          <select id="type" title="Service type">
+            <option value="">Select Service Type</option>
+            <option>Police</option>
+            <option>Fire</option>
+            <option>Rescue</option>
+            <option>Medical</option>
+          </select>
 
-            <!-- ✅ FIXED (ONLY SELECT) -->
-            <select id="type">
-                <option value="">Select Service Type</option>
-                <option>Police</option>
-                <option>Fire</option>
-                <option>Rescue</option>
-                <option>Medical</option>
-            </select>
+          <input type="text" id="head" placeholder="Head of Organization" />
 
-            <input type="text" id="head" placeholder="Head of Organization">
-
-            <button class="save-btn" onclick="addHotline()">
-                Save Hotline
-            </button>
-
+          <button class="save-btn" onclick="addHotline()">Save Hotline</button>
         </div>
-
+      </div>
     </div>
-</div>
 
-<script>
+    <script type="module">
+      import {
+        addHotline,
+        requireAdminSession,
+        subscribeHotlines,
+      } from "../api/firebase_admin.js";
 
-/* CALL */
-function callHotline(number) {
-    window.location.href = "tel:" + number;
-}
+      const hotlineContainer = document.getElementById("hotlineContainer");
+      const searchInput = document.getElementById("searchInput");
+      const select = document.getElementById("customSelect");
+      const selected = select.querySelector(".select-selected");
+      const items = select.querySelector(".select-items");
 
-/* MODAL */
-function openModal() {
-    document.getElementById("hotlineModal").classList.add("show");
-}
-function closeModal() {
-    document.getElementById("hotlineModal").classList.remove("show");
-}
+      let hotlines = [];
+      let activeType = "all";
 
-/* ADD HOTLINE */
-function addHotline() {
+      function callHotline(number) {
+        window.location.href = "tel:" + number;
+      }
 
-    const name = document.getElementById("orgName").value;
-    const contact = document.getElementById("contact").value;
-    const type = document.getElementById("type").value;
-    const head = document.getElementById("head").value;
+      function openModal() {
+        document.getElementById("hotlineModal").classList.add("show");
+      }
 
-    if (!name || !contact || !type || !head) {
-        alert("Please fill all fields");
-        return;
-    }
+      function closeModal() {
+        document.getElementById("hotlineModal").classList.remove("show");
+      }
 
-    const container = document.getElementById("hotlineContainer");
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
 
-    const card = document.createElement("div");
-    card.className = "hotline-card";
+      function iconForType(type) {
+        const normalized = String(type || "").toLowerCase();
+        if (normalized === "medical") return "fa-hospital";
+        if (normalized === "fire") return "fa-fire-extinguisher";
+        if (normalized === "police") return "fa-shield-halved";
+        if (normalized === "rescue") return "fa-life-ring";
+        return "fa-phone";
+      }
 
-    /* 🔥 IMPORTANT FOR FILTER */
-    card.setAttribute("data-name", name.toLowerCase());
-    card.setAttribute("data-type", type);
+      function renderHotlines() {
+        hotlineContainer.innerHTML = "";
+        const search = searchInput.value.toLowerCase();
 
-    card.innerHTML = `
-        <div class="icon"><i class="fa fa-phone"></i></div>
-        <h3>${name}</h3>
-        <p>${contact}</p>
-        <span>${type}</span>
-        <small>Head: ${head}</small>
+        const filtered = hotlines.filter((hotline) => {
+          const type = String(
+            hotline.service || hotline.type || "",
+          ).toLowerCase();
+          const name = String(hotline.name || "").toLowerCase();
 
-        <button class="call-btn" onclick="callHotline('${contact}')">
-            <i class="fa fa-phone"></i>
-        </button>
-    `;
+          const matchSearch = name.includes(search);
+          const matchFilter =
+            activeType === "all" || type === activeType.toLowerCase();
 
-    container.appendChild(card);
+          return matchSearch && matchFilter;
+        });
 
-    closeModal();
+        if (!filtered.length) {
+          hotlineContainer.innerHTML =
+            '<p style="color:#9fb5a4;">No hotline records found.</p>';
+          return;
+        }
 
-    document.getElementById("orgName").value = "";
-    document.getElementById("contact").value = "";
-    document.getElementById("type").value = "";
-    document.getElementById("head").value = "";
-}
+        filtered.forEach((hotline) => {
+          const card = document.createElement("div");
+          const type = hotline.service || hotline.type || "General";
+          const contact = hotline.phoneNumber || hotline.contact || "N/A";
 
-/* FILTER DROPDOWN */
-const select = document.getElementById("customSelect");
-const selected = select.querySelector(".select-selected");
-const items = select.querySelector(".select-items");
+          card.className = "hotline-card";
+          card.dataset.name = String(hotline.name || "").toLowerCase();
+          card.dataset.type = type;
+          card.innerHTML = `
+            <div class="icon"><i class="fa ${iconForType(type)}"></i></div>
+            <h3>${escapeHtml(hotline.name || "Unknown")}</h3>
+            <p>${escapeHtml(contact)}</p>
+            <span>${escapeHtml(String(type).toUpperCase())}</span>
+            <small>Head: ${escapeHtml(hotline.head || "-")}</small>
+            <button class="call-btn"><i class="fa fa-phone"></i></button>
+        `;
 
-selected.addEventListener("click", () => {
-    select.classList.toggle("active");
-});
+          card
+            .querySelector(".call-btn")
+            .addEventListener("click", () => callHotline(contact));
+          hotlineContainer.appendChild(card);
+        });
+      }
 
-items.querySelectorAll("div").forEach(option => {
-    option.addEventListener("click", () => {
-        selected.innerText = option.innerText;
-        select.classList.remove("active");
+      async function addHotlineEntry() {
+        const name = document.getElementById("orgName").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+        const type = document.getElementById("type").value.trim();
+        const head = document.getElementById("head").value.trim();
 
-        filterHotlines(option.dataset.value);
-    });
-});
+        if (!name || !contact || !type || !head) {
+          alert("Please fill all fields");
+          return;
+        }
 
-/* SEARCH */
-document.getElementById("searchInput").addEventListener("input", () => {
-    filterHotlines();
-});
+        await addHotline({
+          name,
+          phoneNumber: contact,
+          service: type,
+          head,
+        });
 
-/* FILTER FUNCTION */
-function filterHotlines(type = "all") {
+        closeModal();
+        document.getElementById("orgName").value = "";
+        document.getElementById("contact").value = "";
+        document.getElementById("type").value = "";
+        document.getElementById("head").value = "";
+      }
 
-    const search = document.getElementById("searchInput").value.toLowerCase();
-    const cards = document.querySelectorAll("#hotlineContainer .hotline-card");
+      selected.addEventListener("click", () =>
+        select.classList.toggle("active"),
+      );
 
-    cards.forEach(card => {
+      items.querySelectorAll("div").forEach((option) => {
+        option.addEventListener("click", () => {
+          selected.innerText = option.innerText;
+          activeType = option.dataset.value || "all";
+          select.classList.remove("active");
+          renderHotlines();
+        });
+      });
 
-        const name = card.dataset.name || "";
-        const cardType = card.dataset.type || "";
+      searchInput.addEventListener("input", renderHotlines);
 
-        const matchSearch = name.includes(search);
-        const matchFilter = type === "all" || cardType === type;
+      window.openModal = openModal;
+      window.closeModal = closeModal;
+      window.addHotline = addHotlineEntry;
+      window.callHotline = callHotline;
 
-        card.style.display = (matchSearch && matchFilter) ? "block" : "none";
-
-    });
-}
-
-</script>
-
-</body>
+      await requireAdminSession({ autoRedirect: true });
+      subscribeHotlines((liveHotlines) => {
+        hotlines = liveHotlines;
+        renderHotlines();
+      });
+    </script>
+  </body>
 </html>

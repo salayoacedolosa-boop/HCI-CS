@@ -1,385 +1,459 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Incidents</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Incidents</title>
 
-<link rel="stylesheet" href="../css/incidents.css">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/incidents.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      rel="stylesheet"
+    />
+  </head>
 
-</head>
-
-<body>
-
-<div class="header">
-    <h2>Incident Reports</h2>
-</div>
-
-<!-- CONTROLS -->
-<div class="controls">
-
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search...">
-        <i class="fa fa-search"></i>
+  <body>
+    <div class="header">
+      <h2>Incident Reports</h2>
     </div>
 
-    <div class="custom-select" id="customSelect">
+    <div class="controls">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search..." />
+        <i class="fa fa-search"></i>
+      </div>
+
+      <div class="custom-select" id="customSelect">
         <div class="select-selected">All</div>
         <div class="select-items">
-            <div data-value="all">All</div>
-            <div data-value="active">Active</div>
-            <div data-value="resolved">Resolved</div>
+          <div data-value="all">All</div>
+          <div data-value="active">Active</div>
+          <div data-value="dispatched">Dispatched</div>
+          <div data-value="resolved">Resolved</div>
         </div>
-    </div>
+      </div>
 
-    <button class="add-btn" onclick="openModal()">
+      <button class="add-btn" onclick="openModal()" title="Add incident">
         <i class="fa fa-plus"></i>
-    </button>
-
-</div>
-
-<!-- INCIDENT GRID -->
-<div class="incidents-grid" id="incidentContainer"></div>
-
-<!-- MODAL -->
-<div class="modal" id="incidentModal">
-
-  <div class="modal-content emergency dispatch-ui">
-
-    <!-- HEADER -->
-    <div class="modal-header">
-      <h3>Sending Units</h3>
-      <span class="close" onclick="closeModal()">&times;</span>
-    </div>
-
-    <div class="modal-body">
-
-      <!-- CALLER -->
-      <label for="name">Caller Information</label>
-      <input type="text" id="name" placeholder="Caller Name">
-           <!-- CONTACT -->
-      <input type="text" id="contact" placeholder="Contact Number">
-
-      <!-- UNIT -->
-      <label>Which unit to send?</label>
-      <div class="btn-group" id="unitGroup">
-        <button class="active">Police</button>
-        <button>Fire</button>
-        <button>Rescue</button>
-        <button>Medical</button>
-      </div>
-
-      <!-- TYPE -->
-      <label>Type of incident</label>
-      <select id="incident">
-        <option value="Fire">Fire</option>
-        <option value="Medical">Medical</option>
-        <option value="Accident">Accident</option>
-        <option value="Security">Security</option>
-      </select>
-
-      <!-- PROBLEM -->
-      <label>What is the problem?</label>
-      <input type="text" id="type" placeholder="Describe incident...">
-
-      <hr>
-
-      <!-- LOCATION -->
-      <div class="location-input">
-        <button type="button" class="track-btn" onclick="trackCurrentLocation()">
-          <i class="fa-solid fa-location-crosshairs"></i>
-        </button>
-        <input type="text" id="location" placeholder="Specific Location">
-      </div>
-
-      <!-- VICTIMS -->
-      <label>How many victims?</label>
-      <div class="btn-group small" id="victimGroup">
-        <button>No one</button>
-        <button class="active">1-4</button>
-        <button>5-9</button>
-        <button>Over 10</button>
-      </div>
-
-      <!-- AGGRESSORS -->
-      <label>How many aggressors?</label>
-      <div class="btn-group small" id="aggressorGroup">
-        <button>Single</button>
-        <button class="active">2-4</button>
-        <button>5-9</button>
-        <button>Over 10</button>
-      </div>
-
-      <!-- DANGER -->
-      <label for="dangerRange">Rate the danger level</label>
-      <input type="range" id="dangerRange" class="range" min="1" max="10" value="5" title="Danger level: 5">
-      <div class="range-value">Danger level: <span id="dangerValue">5</span>/10</div>
-
-
-      <!-- STATUS -->
-      <select id="status">
-        <option value="active">Active</option>
-        <option value="resolved">Resolved</option>
-      </select>
-
-    </div>
-
-    <!-- FOOTER -->
-    <div class="modal-footer">
-      <button class="save-btn" onclick="addIncident()">
-        SEND UNITS
       </button>
     </div>
 
-  </div>
+    <div class="incidents-grid" id="incidentContainer"></div>
 
-</div>
-<script>
-/* =========================
-   📞 CALL
-========================= */
-function callUser(number) {
-    window.location.href = "tel:" + number;
-}
-
-/* =========================
-   🧠 MODAL CONTROL
-========================= */
-const modal = document.getElementById("incidentModal");
-
-function openModal() {
-    modal.classList.add("show");
-
-    setTimeout(() => {
-        document.getElementById("name").focus();
-    }, 100);
-}
-
-function closeModal() {
-    modal.classList.remove("show");
-}
-
-/* =========================
-   ⌨️ SHORTCUTS (FINAL FIX)
-========================= */
-
-// CTRL + A → OPEN MODAL
-document.addEventListener("keydown", function(e) {
-
-    if (e.ctrlKey && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-
-        if (!modal.classList.contains("show")) {
-            openModal();
-        }
-    }
-
-});
-
-// ENTER → SAVE (ONLY INSIDE MODAL INPUTS)
-document.addEventListener("keydown", function(e) {
-
-    if (!modal.classList.contains("show")) return;
-
-    const active = document.activeElement;
-
-    if (
-        e.key === "Enter" &&
-        (active.tagName === "INPUT" || active.tagName === "SELECT")
-    ) {
-        e.preventDefault();
-        addIncident();
-    }
-
-});
-
-// ESC → CLOSE MODAL
-document.addEventListener("keydown", function(e) {
-
-    if (e.key === "Escape" && modal.classList.contains("show")) {
-        closeModal();
-    }
-
-});
-
-/* =========================
-   🖱 CLICK OUTSIDE TO CLOSE
-========================= */
-modal.addEventListener("click", function(e) {
-    if (e.target === modal) {
-        closeModal();
-    }
-});
-
-/* =========================
-   ⚡ QUICK TYPE BUTTONS
-========================= */
-function setType(value) {
-    document.getElementById("type").value = value;
-}
-
-/* =========================
-   🧱 CREATE CARD
-========================= */
-function createCard(data) {
-
-    const container = document.getElementById("incidentContainer");
-
-    const card = document.createElement("div");
-    card.className = `incident-card ${data.status}`;
-
-    card.innerHTML = `
-    <div class="card-top">
-        <div class="user">
-            <i class="fa fa-user"></i>
-            <div>
-                <h3>${data.name}</h3>
-                <span>Caller</span>
-            </div>
+    <div class="modal" id="incidentModal">
+      <div class="modal-content emergency dispatch-ui">
+        <div class="modal-header">
+          <h3>Sending Units</h3>
+          <span class="close" onclick="closeModal()">&times;</span>
         </div>
-        <span class="status ${data.status}">
-            ${data.status.toUpperCase()}
-        </span>
-    </div>
 
-    <div class="card-body">
+        <div class="modal-body">
+          <label for="name">Caller Information</label>
+          <input type="text" id="name" placeholder="Caller Name" />
+          <input type="text" id="contact" placeholder="Contact Number" />
 
-        <!-- 📍 LOCATION WITH TRACK BUTTON -->
-        <div class="location-row">
-            <button class="track-btn" onclick="trackLocation('${data.location}')">
-                <i class="fa-solid fa-location-crosshairs"></i>
+          <label>Which unit to send?</label>
+          <div class="btn-group" id="unitGroup">
+            <button class="active">Police</button>
+            <button>Fire</button>
+            <button>Rescue</button>
+            <button>Medical</button>
+          </div>
+
+          <label>Type of incident</label>
+          <select id="incident" title="Incident type">
+            <option value="Fire">Fire</option>
+            <option value="Medical">Medical</option>
+            <option value="Accident">Accident</option>
+            <option value="Security">Security</option>
+          </select>
+
+          <label>What is the problem?</label>
+          <input type="text" id="type" placeholder="Describe incident..." />
+
+          <hr />
+
+          <div class="location-input">
+            <button
+              type="button"
+              class="track-btn"
+              onclick="trackCurrentLocation()"
+              title="Use current location"
+            >
+              <i class="fa-solid fa-location-crosshairs"></i>
             </button>
+            <input type="text" id="location" placeholder="Specific Location" />
+          </div>
 
-            <span class="location-text">${data.location}</span>
+          <label>How many victims?</label>
+          <div class="btn-group small" id="victimGroup">
+            <button>No one</button>
+            <button class="active">1-4</button>
+            <button>5-9</button>
+            <button>Over 10</button>
+          </div>
+
+          <label>How many aggressors?</label>
+          <div class="btn-group small" id="aggressorGroup">
+            <button>Single</button>
+            <button class="active">2-4</button>
+            <button>5-9</button>
+            <button>Over 10</button>
+          </div>
+
+          <label for="dangerRange">Rate the danger level</label>
+          <input
+            type="range"
+            id="dangerRange"
+            class="range"
+            min="1"
+            max="10"
+            value="5"
+            title="Danger level: 5"
+          />
+          <div class="range-value">
+            Danger level: <span id="dangerValue">5</span>/10
+          </div>
+
+          <select id="status" title="Incident status">
+            <option value="active">Active</option>
+            <option value="resolved">Resolved</option>
+          </select>
         </div>
 
-        <p><strong>Incident:</strong> ${data.type}</p>
-        <p><strong>Contact:</strong> ${data.contact}</p>
+        <div class="modal-footer">
+          <button class="save-btn" onclick="addIncident()">SEND UNITS</button>
+        </div>
+      </div>
     </div>
 
-    <div class="card-actions">
-        <button class="btn call" onclick="callUser('${data.contact}')">
-            <i class="fa fa-phone"></i>
-        </button>
-    </div>
-`;
+    <script type="module">
+      import {
+        createManualIncident,
+        formatTimestamp,
+        getIncidentTypeLabel,
+        inferIncidentLocation,
+        logDispatch,
+        requireAdminSession,
+        subscribeIncidents,
+        updateIncidentStatus,
+      } from "../api/firebase_admin.js";
 
-    container.prepend(card);
-}
+      const modal = document.getElementById("incidentModal");
+      const incidentContainer = document.getElementById("incidentContainer");
+      const searchInput = document.getElementById("searchInput");
+      const selectRoot = document.getElementById("customSelect");
+      const selectedFilter = selectRoot.querySelector(".select-selected");
+      const filterOptions = selectRoot.querySelectorAll(".select-items div");
 
-/* =========================
-   ➕ ADD INCIDENT
-========================= */
-function addIncident() {
+      let activeFilter = "all";
+      let incidents = [];
 
-    const name = document.getElementById("name").value.trim();
-    const location = document.getElementById("location").value.trim();
-    const type = document.getElementById("type").value.trim();
-    const contact = document.getElementById("contact").value.trim();
-    const status = document.getElementById("status").value;
+      function escapeHtml(value) {
+        return String(value || "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
 
-    if (!name || !location || !type || !contact) {
-        alert("Fill required fields");
-        return;
-    }
+      function callUser(number) {
+        window.location.href = "tel:" + number;
+      }
 
-    createCard({ name, location, type, contact, status });
+      function openModal() {
+        modal.classList.add("show");
+        setTimeout(() => document.getElementById("name").focus(), 80);
+      }
 
-    closeModal();
+      function closeModal() {
+        modal.classList.remove("show");
+      }
 
-    // 📞 AUTO CALL
-    callUser(contact);
+      function getSelectedText(groupId) {
+        const selected = document.querySelector(`#${groupId} button.active`);
+        return selected ? selected.textContent.trim() : "";
+      }
 
-    // clear fields
-    document.getElementById("name").value = "";
-    document.getElementById("location").value = "";
-    document.getElementById("type").value = "";
-    document.getElementById("contact").value = "";
-}
+      function applyFilters() {
+        const searchValue = searchInput.value.trim().toLowerCase();
+        const filtered = incidents.filter((incident) => {
+          const statusMatch =
+            activeFilter === "all" ||
+            String(incident.status || "").toLowerCase() === activeFilter;
 
-/* =========================
-   📊 SAMPLE DATA LOAD
-========================= */
-window.addEventListener("load", () => {
+          if (!statusMatch) {
+            return false;
+          }
 
-    const samples = [
-        {
-            name: "Juan Dela Cruz",
-            location: "Room 101",
-            type: "Fire Emergency",
-            contact: "09123456789",
-            status: "active"
-        },
-        {
-            name: "Maria Santos",
-            location: "Clinic",
-            type: "Medical Emergency",
-            contact: "09987654321",
-            status: "resolved"
+          if (!searchValue) {
+            return true;
+          }
+
+          const haystack = [
+            incident.callerName,
+            incident.contact,
+            incident.description,
+            incident.type,
+            inferIncidentLocation(incident),
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          return haystack.includes(searchValue);
+        });
+
+        renderIncidents(filtered);
+      }
+
+      function renderIncidents(list) {
+        incidentContainer.innerHTML = "";
+
+        if (!list.length) {
+          incidentContainer.innerHTML =
+            '<p style="color:#9fb5a4;">No incidents found.</p>';
+          return;
         }
-    ];
 
-    samples.forEach(createCard);
-});
+        list.forEach((incident) => {
+          const card = document.createElement("div");
+          const status = String(incident.status || "active").toLowerCase();
+          const contact = incident.contact || "N/A";
+          const location = inferIncidentLocation(incident);
+          const typeLabel = getIncidentTypeLabel(incident.type);
 
-function trackLocation(location) {
-    console.log("Tracking location:", location);
+          card.className = `incident-card ${status}`;
+          card.innerHTML = `
+            <div class="card-top">
+                <div class="user">
+                    <i class="fa fa-user"></i>
+                    <div>
+                        <h3>${escapeHtml(incident.callerName || "Unknown Caller")}</h3>
+                        <span>${escapeHtml(formatTimestamp(incident.createdAt))}</span>
+                    </div>
+                </div>
+                <span class="status ${escapeHtml(status)}">${escapeHtml(status.toUpperCase())}</span>
+            </div>
 
-    // ready for map integration
-    // example (iframe/map communication)
-    window.parent.postMessage({
-        type: "TRACK_LOCATION",
-        location: location
-    }, "*");
-}
+            <div class="card-body">
+                <div class="location-row">
+                    <button class="track-btn" data-lat="${incident.location?.lat || ""}" data-lng="${incident.location?.lng || ""}">
+                        <i class="fa-solid fa-location-crosshairs"></i>
+                    </button>
+                    <span class="location-text">${escapeHtml(location)}</span>
+                </div>
+                <p><strong>Incident:</strong> ${escapeHtml(typeLabel)}</p>
+                <p><strong>Contact:</strong> ${escapeHtml(contact)}</p>
+                <p><strong>Description:</strong> ${escapeHtml(incident.description || "-")}</p>
+            </div>
 
-function trackCurrentLocation() {
-    const locationInput = document.getElementById("location");
+            <div class="card-actions">
+                <button class="btn call"><i class="fa fa-phone"></i></button>
+                <button class="btn" style="background:#2e793e;color:#fff;">Mark Resolved</button>
+            </div>
+        `;
 
-    if (!navigator.geolocation) {
-        alert("Geolocation is not supported by this browser.");
-        return;
-    }
+          const [callBtn, resolveBtn] =
+            card.querySelectorAll(".card-actions .btn");
+          callBtn.addEventListener("click", () => callUser(contact));
+          resolveBtn.addEventListener("click", async () => {
+            await updateIncidentStatus(incident.id, "resolved");
+            await logDispatch({
+              incidentId: incident.id,
+              receiver: "Response Team",
+              status: "Resolved",
+              message: "Incident marked resolved by admin",
+            });
+          });
 
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
+          card
+            .querySelector(".track-btn")
+            .addEventListener("click", (event) => {
+              const lat = Number(event.currentTarget.dataset.lat);
+              const lng = Number(event.currentTarget.dataset.lng);
+
+              if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+                return;
+              }
+
+              window.parent.postMessage(
+                {
+                  type: "TRACK_LOCATION",
+                  location: { lat, lng },
+                },
+                "*",
+              );
+            });
+
+          incidentContainer.appendChild(card);
+        });
+      }
+
+      async function addIncident() {
+        const name = document.getElementById("name").value.trim();
+        const locationText = document.getElementById("location").value.trim();
+        const type = document.getElementById("incident").value;
+        const description = document.getElementById("type").value.trim();
+        const contact = document.getElementById("contact").value.trim();
+        const status = document.getElementById("status").value;
+        const unit = getSelectedText("unitGroup") || "Police";
+        const victims = getSelectedText("victimGroup") || "1-4";
+        const aggressors = getSelectedText("aggressorGroup") || "2-4";
+        const dangerLevel = document.getElementById("dangerRange").value;
+
+        if (!name || !locationText || !description || !contact) {
+          alert("Fill required fields");
+          return;
+        }
+
+        let lat = null;
+        let lng = null;
+        const parts = locationText
+          .split(",")
+          .map((part) => Number(part.trim()));
+        if (
+          parts.length === 2 &&
+          Number.isFinite(parts[0]) &&
+          Number.isFinite(parts[1])
+        ) {
+          lat = parts[0];
+          lng = parts[1];
+        }
+
+        await createManualIncident({
+          callerName: name,
+          contact,
+          type: type.toLowerCase(),
+          description,
+          status,
+          unit,
+          victims,
+          aggressors,
+          dangerLevel,
+          location: {
+            label: locationText,
+            lat,
+            lng,
+            accuracy: null,
+            timestamp: new Date().toISOString(),
+          },
+        });
+
+        await logDispatch({
+          receiver: unit,
+          status: "Delivered",
+          message: `Unit dispatched for ${type}`,
+        });
+
+        closeModal();
+        document.getElementById("name").value = "";
+        document.getElementById("location").value = "";
+        document.getElementById("type").value = "";
+        document.getElementById("contact").value = "";
+      }
+
+      function trackCurrentLocation() {
+        const locationInput = document.getElementById("location");
+
+        if (!navigator.geolocation) {
+          alert("Geolocation is not supported by this browser.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
             const { latitude, longitude } = position.coords;
             locationInput.value = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-        },
-        () => {
+          },
+          () => {
             alert("Unable to get current location.");
+          },
+        );
+      }
+
+      function setupSelectableButtonGroup(groupId) {
+        const group = document.getElementById(groupId);
+        if (!group) {
+          return;
         }
-    );
-}
 
-function setupSelectableButtonGroup(groupId) {
-    const group = document.getElementById(groupId);
-    if (!group) return;
-
-    const buttons = group.querySelectorAll("button");
-    buttons.forEach((button) => {
-        button.addEventListener("click", () => {
+        const buttons = group.querySelectorAll("button");
+        buttons.forEach((button) => {
+          button.addEventListener("click", () => {
             buttons.forEach((btn) => btn.classList.remove("active"));
             button.classList.add("active");
+          });
         });
-    });
-}
+      }
 
-setupSelectableButtonGroup("unitGroup");
-setupSelectableButtonGroup("victimGroup");
-setupSelectableButtonGroup("aggressorGroup");
+      selectedFilter.addEventListener("click", () =>
+        selectRoot.classList.toggle("active"),
+      );
+      filterOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+          activeFilter = option.dataset.value || "all";
+          selectedFilter.textContent = option.textContent;
+          selectRoot.classList.remove("active");
+          applyFilters();
+        });
+      });
 
-const dangerRange = document.getElementById("dangerRange");
-const dangerValue = document.getElementById("dangerValue");
+      searchInput.addEventListener("input", applyFilters);
 
-if (dangerRange && dangerValue) {
-    dangerRange.addEventListener("input", function() {
-        dangerValue.textContent = this.value;
-        this.title = `Danger level: ${this.value}`;
-    });
-}
+      document.addEventListener("keydown", (e) => {
+        if (e.ctrlKey && e.key.toLowerCase() === "a") {
+          e.preventDefault();
+          if (!modal.classList.contains("show")) {
+            openModal();
+          }
+        }
 
-</script>
+        if (e.key === "Escape" && modal.classList.contains("show")) {
+          closeModal();
+        }
 
-</body>
+        if (!modal.classList.contains("show")) {
+          return;
+        }
+
+        const active = document.activeElement;
+        if (
+          e.key === "Enter" &&
+          (active.tagName === "INPUT" || active.tagName === "SELECT")
+        ) {
+          e.preventDefault();
+          addIncident();
+        }
+      });
+
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          closeModal();
+        }
+      });
+
+      document
+        .getElementById("dangerRange")
+        .addEventListener("input", function () {
+          document.getElementById("dangerValue").textContent = this.value;
+          this.title = `Danger level: ${this.value}`;
+        });
+
+      window.openModal = openModal;
+      window.closeModal = closeModal;
+      window.addIncident = addIncident;
+      window.trackCurrentLocation = trackCurrentLocation;
+
+      setupSelectableButtonGroup("unitGroup");
+      setupSelectableButtonGroup("victimGroup");
+      setupSelectableButtonGroup("aggressorGroup");
+
+      await requireAdminSession({ autoRedirect: true });
+      subscribeIncidents((liveIncidents) => {
+        incidents = liveIncidents;
+        applyFilters();
+      });
+    </script>
+  </body>
 </html>

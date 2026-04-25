@@ -12,15 +12,43 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isSeedAdminEmail() {
+      return isSignedIn()
+             && request.auth.token.email in [
+               "aaronmarkvaliente@gmail.com"
+             ];
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+             && exists(/databases/$(database)/documents/admin_users/$(request.auth.uid))
+             && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.isActive == true
+             && get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role in ["admin", "superadmin"];
+    }
+
     // ── Users ───────────────────────────────────────────────────────────────
     // Each user can read and update their own profile document.
     match /users/{uid} {
-      allow read, write: if isOwner(uid);
+      allow read, write: if isOwner(uid) || isAdmin();
 
       // Personal emergency contacts sub-collection
       match /contacts/{contactId} {
-        allow read, create, update, delete: if isOwner(uid);
+        allow read, create, update, delete: if isOwner(uid) || isAdmin();
       }
+    }
+
+    // ── Admin users ─────────────────────────────────────────────────────────
+    match /admin_users/{uid} {
+      allow read: if isAdmin() || isOwner(uid) || isSeedAdminEmail();
+      allow create, update: if isAdmin() || (isSeedAdminEmail() && isOwner(uid));
+      allow delete: if isAdmin();
+    }
+
+    // Username-to-email mapping for admin login (single-doc lookup).
+    match /admin_usernames/{usernameLower} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update, delete: if isAdmin() || isSeedAdminEmail();
     }
 
     // ── Incidents ───────────────────────────────────────────────────────────
@@ -28,18 +56,33 @@ service cloud.firestore {
     // Users can only read or update their own incidents.
     match /incidents/{incidentId} {
       allow create: if isSignedIn()
-                    && request.resource.data.userId == request.auth.uid;
+                    && (
+                      request.resource.data.userId == request.auth.uid
+                      || isAdmin()
+                    );
 
-      allow read, update: if isSignedIn()
-                          && resource.data.userId == request.auth.uid;
+      allow read, update, delete: if isAdmin()
+                                  || (
+                                    isSignedIn()
+                                    && resource.data.userId == request.auth.uid
+                                  );
     }
 
     // ── Emergency hotlines ──────────────────────────────────────────────────
     // Any authenticated user can read hotlines.
-    // Write access is intentionally restricted (admin-only via console).
+    // Write access is admin-only.
     match /emergency_hotlines/{docId} {
       allow read: if isSignedIn();
-      allow write: if false;
+      allow write: if isAdmin() || isSeedAdminEmail();
+    }
+
+    // ── Admin operations data ───────────────────────────────────────────────
+    match /communication_logs/{logId} {
+      allow read, write: if isAdmin() || isSeedAdminEmail();
+    }
+
+    match /admin_settings/{docId} {
+      allow read, write: if isAdmin() || isSeedAdminEmail();
     }
   }
 }

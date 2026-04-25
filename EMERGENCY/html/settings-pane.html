@@ -155,23 +155,37 @@
           </div>
           <div class="setting-item">
             <div class="setting-info">
-              <div class="setting-name">Emergency Contact</div>
-              <div class="setting-desc">Primary emergency contact number</div>
+              <div class="setting-name">Phone Number</div>
+              <div class="setting-desc">Your primary mobile number</div>
             </div>
             <input
-              id="profileEmergencyContactInput"
+              id="profilePhoneInput"
               class="setting-input"
               type="tel"
-              placeholder="Enter emergency number"
-              aria-label="Emergency contact number"
-              title="Emergency contact number"
+              placeholder="Enter phone number"
+              aria-label="Phone number"
+              title="Phone number"
+            />
+          </div>
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-name">Address</div>
+              <div class="setting-desc">Your current home address</div>
+            </div>
+            <input
+              id="profileAddressInput"
+              class="setting-input"
+              type="text"
+              placeholder="Enter address"
+              aria-label="Address"
+              title="Address"
             />
           </div>
           <div class="setting-item">
             <div class="setting-info">
               <div class="setting-name">Save Profile Details</div>
               <div class="setting-desc">
-                Save Student ID and emergency number
+                Save Student ID, phone number, and address
               </div>
             </div>
             <button
@@ -511,13 +525,13 @@
 
       async function saveProfileExtras() {
         const studentIdInput = document.getElementById("profileStudentIdInput");
-        const emergencyContactInput = document.getElementById(
-          "profileEmergencyContactInput",
-        );
+        const phoneInput = document.getElementById("profilePhoneInput");
+        const addressInput = document.getElementById("profileAddressInput");
         const saveBtn = document.getElementById("saveProfileExtrasBtn");
 
         const studentId = studentIdInput.value.trim();
-        const emergencyContactNumber = emergencyContactInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const address = addressInput.value.trim();
 
         saveBtn.disabled = true;
         saveBtn.textContent = "Saving...";
@@ -530,20 +544,31 @@
               {
                 studentId,
                 schoolId: studentId,
-                emergencyContactNumber,
-                emergencyPhone: emergencyContactNumber,
+                phone,
+                phoneNumber: phone,
+                address,
                 updatedAt: serverTimestamp(),
               },
               { merge: true },
             );
           } else {
-            writeLocalProfileExtras({ studentId, emergencyContactNumber });
+            writeLocalProfileExtras({
+              studentId,
+              phone,
+              phoneNumber: phone,
+              address,
+            });
           }
 
           showToast("Profile details saved.", "success");
         } catch (error) {
           console.error("Unable to save profile details:", error);
-          writeLocalProfileExtras({ studentId, emergencyContactNumber });
+          writeLocalProfileExtras({
+            studentId,
+            phone,
+            phoneNumber: phone,
+            address,
+          });
           showToast("Saved on this device only.", "info");
         } finally {
           saveBtn.disabled = false;
@@ -554,9 +579,8 @@
       async function loadProfileValues(user) {
         const nameEl = document.getElementById("profileNameValue");
         const studentIdInput = document.getElementById("profileStudentIdInput");
-        const emergencyContactInput = document.getElementById(
-          "profileEmergencyContactInput",
-        );
+        const phoneInput = document.getElementById("profilePhoneInput");
+        const addressInput = document.getElementById("profileAddressInput");
         const localExtras = readLocalProfileExtras();
 
         currentUser = user;
@@ -564,8 +588,8 @@
         if (!user || !db) {
           nameEl.textContent = "Not signed in";
           studentIdInput.value = localExtras.studentId || "";
-          emergencyContactInput.value =
-            localExtras.emergencyContactNumber || "";
+          phoneInput.value = localExtras.phone || localExtras.phoneNumber || "";
+          addressInput.value = localExtras.address || "";
           return;
         }
 
@@ -575,7 +599,8 @@
           const userRef = doc(db, "users", user.uid);
           const userSnap = await getDoc(userRef);
           let studentId = localExtras.studentId || "";
-          let emergencyContact = localExtras.emergencyContactNumber || "";
+          let phone = localExtras.phone || localExtras.phoneNumber || "";
+          let address = localExtras.address || "";
 
           if (userSnap.exists()) {
             const data = userSnap.data();
@@ -586,21 +611,23 @@
               user.email ||
               "Not available";
             studentId = data.studentId || data.schoolId || studentId;
-            emergencyContact =
-              data.emergencyContactNumber ||
-              data.emergencyPhone ||
-              data.phone ||
-              data.phoneNumber ||
-              emergencyContact;
+            phone = data.phone || data.phoneNumber || data.mobile || phone;
+            address =
+              data.address ||
+              data.homeAddress ||
+              data.residentialAddress ||
+              data.currentAddress ||
+              address;
           }
 
           studentIdInput.value = studentId;
-          emergencyContactInput.value = emergencyContact;
+          phoneInput.value = phone;
+          addressInput.value = address;
         } catch (error) {
           console.error("Unable to load profile values for settings:", error);
           studentIdInput.value = localExtras.studentId || "";
-          emergencyContactInput.value =
-            localExtras.emergencyContactNumber || "";
+          phoneInput.value = localExtras.phone || localExtras.phoneNumber || "";
+          addressInput.value = localExtras.address || "";
         }
       }
 
