@@ -3,12 +3,14 @@ import { resolve } from "path";
 
 export default defineConfig({
   root: resolve(__dirname),
+  base: "./",
   envDir: __dirname,
   build: {
     outDir: resolve(__dirname, "dist"),
     emptyOutDir: true,
     rollupOptions: {
       input: {
+        root: resolve(__dirname, "index.html"),
         index: resolve(__dirname, "EMERGENCY/html/index.html"),
         home: resolve(__dirname, "EMERGENCY/html/home.html"),
         login: resolve(__dirname, "EMERGENCY/html/login.html"),
