@@ -121,10 +121,10 @@ p {
   border-radius: 12px;
   margin-bottom: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  cursor: pointer;
   transition:
     box-shadow 0.2s ease,
     transform 0.2s ease;
+  overflow: hidden;
 }
 
 .history-item:hover {
@@ -135,8 +135,13 @@ p {
 .history-summary {
   display: flex;
   align-items: center;
+  width: 100%;
   padding: 16px;
   gap: 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
 .history-icon {
@@ -172,6 +177,10 @@ p {
   transition: transform 0.2s ease;
 }
 
+.history-item.expanded .history-arrow {
+  transform: rotate(180deg);
+}
+
 .history-arrow i {
   font-size: 14px;
 }
@@ -181,6 +190,25 @@ p {
   padding: 0 16px 16px;
   border-top: 1px solid #eee;
   margin-top: 8px;
+}
+
+.history-item.expanded .history-details {
+  display: block;
+}
+
+.history-state {
+  margin: 0;
+  padding: 18px 16px;
+  border-radius: 12px;
+  background: white;
+  color: var(--primary);
+  font-size: 14px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.history-state-error {
+  color: #a83232;
 }
 
 .detail-row {

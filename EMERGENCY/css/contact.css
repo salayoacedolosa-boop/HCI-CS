@@ -286,6 +286,47 @@ p {
   transform: scale(1.1);
 }
 
+.delete-btn {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: #bbb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+  font-size: 11px;
+  padding: 0;
+}
+
+.delete-btn:hover {
+  color: var(--danger);
+  background: rgba(220, 53, 69, 0.08);
+}
+
+.contact-state {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: white;
+  color: var(--primary);
+  font-size: 13px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.contact-state-error {
+  color: var(--danger);
+}
+
 /* MODAL */
 .modal {
   display: none;

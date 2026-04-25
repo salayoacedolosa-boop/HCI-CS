@@ -193,6 +193,10 @@
         getDeviceLocation,
         requestLocationPermission,
       } from "../api/location.js";
+      import {
+        ensureEmergencyHotlineDatastore,
+        getPrimaryEmergencyHotline,
+      } from "../api/hotlines.js";
       import { showToast, showAlertModal } from "../api/notifications.js";
 
       // Firebase Config from environment variables
@@ -451,6 +455,8 @@
           const result = await createSOSIncident(db, currentUser.uid, location);
 
           if (result.success) {
+            await triggerEmergencyHotlineCall();
+
             showAlertModal(
               "SOS ACTIVATED",
               "Emergency responders have been notified of your location.",
@@ -465,6 +471,37 @@
           console.error("SOS error:", error);
           showToast("Error: " + error.message, "error");
         }
+      }
+
+      function sanitizeDialNumber(rawPhoneNumber) {
+        if (!rawPhoneNumber) {
+          return "";
+        }
+
+        return String(rawPhoneNumber).replace(/[^\d+]/g, "");
+      }
+
+      async function triggerEmergencyHotlineCall() {
+        const hotlineResult = await getPrimaryEmergencyHotline(db);
+
+        if (!hotlineResult.success || !hotlineResult.hotline) {
+          showToast(
+            "SOS sent, but hotline record is missing in datastore.",
+            "error",
+          );
+          return;
+        }
+
+        const hotlineNumber = hotlineResult.hotline.phoneNumber;
+        const dialNumber = sanitizeDialNumber(hotlineNumber);
+
+        if (!dialNumber) {
+          showToast("SOS sent, but hotline number is not configured.", "error");
+          return;
+        }
+
+        showToast(`Calling emergency hotline: ${hotlineNumber}`, "info");
+        window.location.href = `tel:${dialNumber}`;
       }
 
       /**
@@ -639,6 +676,17 @@
             "Firebase config missing. Check your .env values.",
             "error",
           );
+        }
+
+        if (db) {
+          ensureEmergencyHotlineDatastore(db).then((result) => {
+            if (!result.success) {
+              console.error(
+                "Hotline datastore initialization failed:",
+                result.error,
+              );
+            }
+          });
         }
 
         const route = new URLSearchParams(window.location.search).get("panel");
