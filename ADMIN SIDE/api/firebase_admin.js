@@ -97,6 +97,56 @@ export function getIncidentTypeLabel(type) {
   );
 }
 
+function readFirstString(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    const normalized = String(value).trim();
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
+function normalizeIncidentRecord(entry) {
+  const data = entry.data();
+  const metadata = data?.metadata || {};
+
+  return {
+    id: entry.id,
+    ...data,
+    callerName: readFirstString(
+      data?.callerName,
+      data?.caller,
+      data?.name,
+      data?.reporterName,
+      data?.userName,
+      metadata?.callerName,
+    ),
+    contact: readFirstString(
+      data?.contact,
+      data?.phone,
+      data?.phoneNumber,
+      data?.mobile,
+      data?.reporterContact,
+      metadata?.contact,
+      metadata?.phone,
+    ),
+    description: readFirstString(
+      data?.description,
+      data?.details,
+      data?.report,
+      data?.problemText,
+      data?.incidentDescription,
+      metadata?.description,
+    ),
+  };
+}
+
 export async function resolveAdminEmail(usernameOrEmail) {
   const value = String(usernameOrEmail || "").trim();
   if (!value) {
@@ -243,10 +293,9 @@ export function subscribeIncidents(callback) {
   );
 
   return onSnapshot(incidentsQuery, (snapshot) => {
-    const incidents = snapshot.docs.map((entry) => ({
-      id: entry.id,
-      ...entry.data(),
-    }));
+    const incidents = snapshot.docs.map((entry) =>
+      normalizeIncidentRecord(entry),
+    );
     callback(incidents);
   });
 }
@@ -261,10 +310,9 @@ export function subscribeActiveIncidents(callback) {
   );
 
   return onSnapshot(activeQuery, (snapshot) => {
-    const incidents = snapshot.docs.map((entry) => ({
-      id: entry.id,
-      ...entry.data(),
-    }));
+    const incidents = snapshot.docs.map((entry) =>
+      normalizeIncidentRecord(entry),
+    );
     callback(incidents);
   });
 }

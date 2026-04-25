@@ -9,16 +9,61 @@ import {
   getDocs,
 } from "firebase/firestore";
 
+function pickFirstNonEmpty(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    const normalized = String(value).trim();
+    if (normalized) {
+      return normalized;
+    }
+  }
+
+  return "";
+}
+
+function normalizeReporterDetails(details = {}) {
+  const callerName = pickFirstNonEmpty(
+    details.callerName,
+    details.fullName,
+    details.name,
+    details.displayName,
+    details.email,
+  );
+  const contact = pickFirstNonEmpty(
+    details.contact,
+    details.phone,
+    details.phoneNumber,
+    details.mobile,
+  );
+
+  return {
+    callerName: callerName || "Unknown Caller",
+    contact,
+  };
+}
+
 /**
  * Create a new SOS incident in Firestore
  */
-export async function createSOSIncident(db, userId, location) {
+export async function createSOSIncident(db, userId, location, details = {}) {
   try {
+    const reporter = normalizeReporterDetails(details);
+    const description =
+      pickFirstNonEmpty(details.description, details.note) ||
+      "SOS alert triggered from mobile app";
+
     const incidentsRef = collection(db, "incidents");
     const docRef = await addDoc(incidentsRef, {
       userId: userId,
       type: "sos",
       status: "active",
+      source: "mobile",
+      description,
+      callerName: reporter.callerName,
+      contact: reporter.contact,
       location: {
         lat: location.latitude,
         lng: location.longitude,
@@ -46,14 +91,23 @@ export async function createEmergencyIncident(
   type,
   location,
   description = "",
+  details = {},
 ) {
   try {
+    const reporter = normalizeReporterDetails(details);
+    const incidentDescription =
+      pickFirstNonEmpty(description, details.description, details.note) ||
+      `${type} emergency reported via mobile app`;
+
     const incidentsRef = collection(db, "incidents");
     const docRef = await addDoc(incidentsRef, {
       userId: userId,
       type: type,
       status: "active",
-      description: description,
+      source: "mobile",
+      description: incidentDescription,
+      callerName: reporter.callerName,
+      contact: reporter.contact,
       location: {
         lat: location.latitude,
         lng: location.longitude,

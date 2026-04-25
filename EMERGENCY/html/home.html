@@ -381,6 +381,43 @@
         return "Not provided";
       }
 
+      function getReporterDetails() {
+        const localExtras = readLocalProfileExtras();
+        const callerName =
+          getProfileField(currentProfileData, [
+            "fullName",
+            "name",
+            "displayName",
+          ]) !== "Not provided"
+            ? getProfileField(currentProfileData, [
+                "fullName",
+                "name",
+                "displayName",
+              ])
+            : currentUser?.displayName ||
+              currentUser?.email ||
+              "Unknown Caller";
+
+        const contactValue = getProfileField(currentProfileData, [
+          "phone",
+          "phoneNumber",
+          "mobile",
+        ]);
+        const contact =
+          contactValue !== "Not provided"
+            ? contactValue
+            : currentUser?.phoneNumber ||
+              localExtras.phone ||
+              localExtras.phoneNumber ||
+              "";
+
+        return {
+          callerName,
+          contact,
+          email: currentUser?.email || "",
+        };
+      }
+
       function setProfileField(id, value) {
         document.getElementById(id).textContent = value || "Not provided";
       }
@@ -573,8 +610,14 @@
           showToast("Getting your location...", "info");
           const location = await getDeviceLocation();
           currentLocation = location;
+          const reporter = getReporterDetails();
 
-          const result = await createSOSIncident(db, currentUser.uid, location);
+          const result = await createSOSIncident(
+            db,
+            currentUser.uid,
+            location,
+            reporter,
+          );
 
           if (result.success) {
             if (getBoolSetting("autoCall", true)) {
@@ -704,12 +747,15 @@
           showToast("Getting your location...", "info");
           const location = await getDeviceLocation();
           currentLocation = location;
+          const reporter = getReporterDetails();
 
           const result = await createEmergencyIncident(
             db,
             currentUser.uid,
             type,
             location,
+            "",
+            reporter,
           );
 
           if (result.success) {
