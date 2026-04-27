@@ -9,6 +9,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="../css/login.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <style>
       .login-message {
         margin-top: 8px;
@@ -18,6 +19,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading page...</div>
+    </div>
     <div class="login-container">
       <h1>Welcome Back</h1>
       <p class="subtext">Emergency Response System</p>
@@ -55,6 +60,13 @@
       const togglePasswordButton = document.getElementById("togglePassword");
       const loginBtn = document.getElementById("loginBtn");
       const loginMessage = document.getElementById("loginMessage");
+      const pageLoader = document.getElementById("pageLoader");
+
+      function hidePageLoader() {
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
 
       function setMessage(text, isError = false) {
         loginMessage.textContent = text;
@@ -105,6 +117,8 @@
           handleLogin();
         }
       });
+
+      window.addEventListener("load", hidePageLoader, { once: true });
     </script>
   </body>
 </html>

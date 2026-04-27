@@ -6,6 +6,7 @@
     <title>Reports & Analytics</title>
 
     <link rel="stylesheet" href="../css/reports.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -14,6 +15,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading reports...</div>
+    </div>
     <div class="header">
       <h2>Reports & Analytics</h2>
     </div>
@@ -99,6 +104,28 @@
       );
 
       const ctx = document.getElementById("incidentChart").getContext("2d");
+      const pageLoader = document.getElementById("pageLoader");
+      let assetsReady = true;
+      let incidentsReady = false;
+      let logsReady = false;
+      let hotlinesReady = false;
+      let loaderHidden = false;
+
+      function hidePageLoader() {
+        if (loaderHidden) {
+          return;
+        }
+        loaderHidden = true;
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
+
+      function tryShowPage() {
+        if (assetsReady && incidentsReady && logsReady && hotlinesReady) {
+          hidePageLoader();
+        }
+      }
 
       const fireGradient = ctx.createLinearGradient(0, 0, 0, 250);
       fireGradient.addColorStop(0, "#ff7b00");
@@ -201,6 +228,7 @@
       }
 
       await requireAdminSession({ autoRedirect: true });
+      setTimeout(hidePageLoader, 4500);
 
       subscribeIncidents((incidents) => {
         const activeCount = incidents.filter((incident) => {
@@ -220,14 +248,20 @@
           ? Math.round((resolved / incidents.length) * 100)
           : 0;
         evacuationEl.textContent = `${evacuationRate}%`;
+        incidentsReady = true;
+        tryShowPage();
       });
 
       subscribeCommunicationLogs((logs) => {
         renderLogs(logs);
+        logsReady = true;
+        tryShowPage();
       });
 
       subscribeHotlines((hotlines) => {
         responderCountEl.textContent = String(hotlines.length);
+        hotlinesReady = true;
+        tryShowPage();
       });
     </script>
   </body>

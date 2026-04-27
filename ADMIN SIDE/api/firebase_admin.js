@@ -9,6 +9,7 @@ import {
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -144,6 +145,13 @@ function normalizeIncidentRecord(entry) {
       data?.incidentDescription,
       metadata?.description,
     ),
+    studentId: readFirstString(
+      data?.studentId,
+      data?.schoolId,
+      data?.studentNumber,
+      metadata?.studentId,
+      metadata?.schoolId,
+    ),
   };
 }
 
@@ -204,6 +212,13 @@ async function enrichIncidentFromUserProfile(incident) {
     callerName: callerName || "Unknown Caller",
     contact,
     description,
+    studentId:
+      readFirstString(
+        incident.studentId,
+        profile.studentId,
+        profile.schoolId,
+        profile.studentNumber,
+      ) || "N/A",
   };
 }
 
@@ -442,6 +457,10 @@ export async function updateIncidentStatus(incidentId, status) {
     status,
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function deleteIncident(incidentId) {
+  await deleteDoc(doc(db, "incidents", incidentId));
 }
 
 export async function logDispatch({ incidentId, receiver, status, message }) {

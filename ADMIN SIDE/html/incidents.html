@@ -6,6 +6,7 @@
     <title>Incidents</title>
 
     <link rel="stylesheet" href="../css/incidents.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -13,6 +14,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading incidents...</div>
+    </div>
     <div class="header">
       <h2>Incident Reports</h2>
     </div>
@@ -155,6 +160,25 @@
       </div>
     </div>
 
+    <div class="modal" id="actionConfirmModal">
+      <div class="modal-content map-modal-content">
+        <div class="modal-header">
+          <h3 id="actionConfirmTitle">Confirm Action</h3>
+          <span class="close" id="actionConfirmClose">&times;</span>
+        </div>
+        <div class="map-modal-body">
+          <p id="actionConfirmMessage" style="margin: 0 0 1rem 0">-</p>
+          <div
+            class="map-actions"
+            style="display: flex; gap: 0.5rem; justify-content: flex-end"
+          >
+            <button class="btn" id="actionConfirmCancel">Cancel</button>
+            <button class="btn" id="actionConfirmOk">Confirm</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import {
         formatTimestamp,
@@ -164,6 +188,7 @@
         requireAdminSession,
         subscribeHotlines,
         subscribeIncidents,
+        deleteIncident,
         updateIncidentStatus,
       } from "../api/firebase_admin.js";
 
@@ -172,6 +197,14 @@
       const mapFrame = document.getElementById("mapFrame");
       const mapLocationText = document.getElementById("mapLocationText");
       const mapExternalLink = document.getElementById("mapExternalLink");
+      const actionConfirmModal = document.getElementById("actionConfirmModal");
+      const actionConfirmTitle = document.getElementById("actionConfirmTitle");
+      const actionConfirmMessage = document.getElementById(
+        "actionConfirmMessage",
+      );
+      const actionConfirmClose = document.getElementById("actionConfirmClose");
+      const actionConfirmCancel = document.getElementById("actionConfirmCancel");
+      const actionConfirmOk = document.getElementById("actionConfirmOk");
       const incidentContainer = document.getElementById("incidentContainer");
       const searchInput = document.getElementById("searchInput");
       const selectRoot = document.getElementById("customSelect");
@@ -186,11 +219,29 @@
       const customHotlineNumber = document.getElementById(
         "customHotlineNumber",
       );
+      const pageLoader = document.getElementById("pageLoader");
+      const locationNameCache = new Map();
 
       let activeFilter = "all";
       let incidents = [];
       let hotlines = [];
       let selectedIncidentId = "";
+      let onActionConfirm = null;
+      let assetsReady = document.readyState === "complete";
+      let incidentsReady = false;
+      let hotlinesReady = false;
+
+      function hidePageLoader() {
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
+
+      function tryShowPage() {
+        if (assetsReady && incidentsReady && hotlinesReady) {
+          hidePageLoader();
+        }
+      }
 
       function escapeHtml(value) {
         return String(value || "")
@@ -201,8 +252,78 @@
           .replaceAll("'", "&#39;");
       }
 
-      function callUser(number) {
-        window.location.href = "tel:" + number;
+      function openActionConfirmModal({
+        title = "Confirm Action",
+        message = "Are you sure?",
+        confirmText = "Confirm",
+        confirmColor = "#1f6feb",
+        onConfirm = null,
+      }) {
+        actionConfirmTitle.textContent = title;
+        actionConfirmMessage.textContent = message;
+        actionConfirmOk.textContent = confirmText;
+        actionConfirmOk.style.background = confirmColor;
+        actionConfirmOk.style.color = "#fff";
+        onActionConfirm = typeof onConfirm === "function" ? onConfirm : null;
+        actionConfirmModal.classList.add("show");
+      }
+
+      function closeActionConfirmModal() {
+        actionConfirmModal.classList.remove("show");
+        onActionConfirm = null;
+      }
+
+      function openCallTestModal(number) {
+        const sanitizedNumber = String(number || "").trim() || "N/A";
+        openActionConfirmModal({
+          title: "Test Call",
+          message: `Dial this number for testing?\n${sanitizedNumber}`,
+          confirmText: "Call Now",
+          onConfirm: () => {
+            if (sanitizedNumber !== "N/A") {
+              window.location.href = "tel:" + sanitizedNumber;
+            }
+          },
+        });
+      }
+
+      async function resolveLocationName(incident) {
+        if (incident?.location?.label) {
+          return incident.location.label;
+        }
+        if (incident?.locationName) {
+          return String(incident.locationName);
+        }
+
+        const lat = incident?.location?.lat;
+        const lng = incident?.location?.lng;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return inferIncidentLocation(incident);
+        }
+
+        const cacheKey = `${lat.toFixed(6)},${lng.toFixed(6)}`;
+        if (locationNameCache.has(cacheKey)) {
+          return locationNameCache.get(cacheKey);
+        }
+
+        const fallback = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(String(lat))}&lon=${encodeURIComponent(String(lng))}`,
+          );
+          if (!response.ok) {
+            locationNameCache.set(cacheKey, fallback);
+            return fallback;
+          }
+          const data = await response.json();
+          const locationName =
+            data?.name || data?.display_name || data?.address?.road || fallback;
+          locationNameCache.set(cacheKey, locationName);
+          return locationName;
+        } catch {
+          locationNameCache.set(cacheKey, fallback);
+          return fallback;
+        }
       }
 
       function getRecommendedUnit(type) {
@@ -395,6 +516,7 @@
           const contact = incident.contact || "N/A";
           const location = inferIncidentLocation(incident);
           const typeLabel = getIncidentTypeLabel(incident.type);
+          const studentId = incident.studentId || incident.schoolId || "N/A";
 
           card.className = `incident-card ${status}`;
           card.innerHTML = `
@@ -414,34 +536,66 @@
                     <button class="track-btn" data-lat="${incident.location?.lat || ""}" data-lng="${incident.location?.lng || ""}">
                         <i class="fa-solid fa-location-crosshairs"></i>
                     </button>
-                    <span class="location-text">${escapeHtml(location)}</span>
+                    <span class="location-text" data-location-name>${escapeHtml(location)}</span>
                 </div>
                 <p><strong>Incident:</strong> ${escapeHtml(typeLabel)}</p>
                 <p><strong>Contact:</strong> ${escapeHtml(contact)}</p>
+                <p><strong>Student ID:</strong> ${escapeHtml(studentId)}</p>
                 <p><strong>Description:</strong> ${escapeHtml(incident.description || "-")}</p>
             </div>
 
             <div class="card-actions">
                 <button class="btn call"><i class="fa fa-phone"></i></button>
                 <button class="btn dispatch">Dispatch</button>
-                <button class="btn" style="background:#2e793e;color:#fff;">Mark Resolved</button>
+                <button class="btn mark-resolved" style="background:#2e793e;color:#fff;">Mark Resolved</button>
+                ${status === "resolved" ? '<button class="btn delete-resolved" style="background:#7f1d1d;color:#fff;">Delete</button>' : ""}
             </div>
         `;
 
-          const [callBtn, dispatchBtn, resolveBtn] =
-            card.querySelectorAll(".card-actions .btn");
-          callBtn.addEventListener("click", () => callUser(contact));
+          const callBtn = card.querySelector(".btn.call");
+          const dispatchBtn = card.querySelector(".btn.dispatch");
+          const resolveBtn = card.querySelector(".btn.mark-resolved");
+          const deleteBtn = card.querySelector(".btn.delete-resolved");
+
+          callBtn.addEventListener("click", () => openCallTestModal(contact));
           dispatchBtn.addEventListener("click", () => openModal(incident.id));
           dispatchBtn.disabled = status !== "active";
           resolveBtn.addEventListener("click", async () => {
-            await updateIncidentStatus(incident.id, "resolved");
-            await logDispatch({
-              incidentId: incident.id,
-              receiver: "Response Team",
-              status: "Resolved",
-              message: "Incident marked resolved by admin",
+            openActionConfirmModal({
+              title: "Confirm Resolution",
+              message: "Mark this incident as resolved?",
+              confirmText: "Mark Resolved",
+              confirmColor: "#2e793e",
+              onConfirm: async () => {
+                await updateIncidentStatus(incident.id, "resolved");
+                await logDispatch({
+                  incidentId: incident.id,
+                  receiver: "Response Team",
+                  status: "Resolved",
+                  message: "Incident marked resolved by admin",
+                });
+              },
             });
           });
+          resolveBtn.disabled = status === "resolved";
+
+          if (deleteBtn) {
+            deleteBtn.addEventListener("click", async () => {
+              openActionConfirmModal({
+                title: "Delete Incident",
+                message: "Delete this resolved incident permanently?",
+                confirmText: "Delete",
+                confirmColor: "#7f1d1d",
+                onConfirm: async () => {
+                  try {
+                    await deleteIncident(incident.id);
+                  } catch (error) {
+                    alert(error?.message || "Unable to delete incident.");
+                  }
+                },
+              });
+            });
+          }
 
           card
             .querySelector(".track-btn")
@@ -450,6 +604,13 @@
               const lng = Number(event.currentTarget.dataset.lng);
               openLocationModal(lat, lng, location);
             });
+
+          resolveLocationName(incident).then((resolvedLocationName) => {
+            const locationNameNode = card.querySelector("[data-location-name]");
+            if (locationNameNode) {
+              locationNameNode.textContent = resolvedLocationName;
+            }
+          });
 
           incidentContainer.appendChild(card);
         });
@@ -627,6 +788,13 @@
           closeLocationModal();
         }
 
+        if (
+          e.key === "Escape" &&
+          actionConfirmModal.classList.contains("show")
+        ) {
+          closeActionConfirmModal();
+        }
+
         if (!modal.classList.contains("show")) {
           return;
         }
@@ -655,6 +823,21 @@
         }
       });
 
+      actionConfirmClose.addEventListener("click", closeActionConfirmModal);
+      actionConfirmCancel.addEventListener("click", closeActionConfirmModal);
+      actionConfirmOk.addEventListener("click", async () => {
+        const handler = onActionConfirm;
+        closeActionConfirmModal();
+        if (handler) {
+          await handler();
+        }
+      });
+      actionConfirmModal.addEventListener("click", (e) => {
+        if (e.target === actionConfirmModal) {
+          closeActionConfirmModal();
+        }
+      });
+
       document
         .getElementById("dangerRange")
         .addEventListener("input", function () {
@@ -669,15 +852,27 @@
       window.dispatchIncident = dispatchIncident;
 
       setupSelectableButtonGroup("unitGroup");
+      window.addEventListener(
+        "load",
+        () => {
+          assetsReady = true;
+          tryShowPage();
+        },
+        { once: true },
+      );
 
       await requireAdminSession({ autoRedirect: true });
       subscribeIncidents((liveIncidents) => {
         incidents = liveIncidents;
         applyFilters();
+        incidentsReady = true;
+        tryShowPage();
       });
       subscribeHotlines((liveHotlines) => {
         hotlines = liveHotlines;
         renderHotlineOptions();
+        hotlinesReady = true;
+        tryShowPage();
       });
     </script>
   </body>

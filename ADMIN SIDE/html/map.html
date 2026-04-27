@@ -6,6 +6,7 @@
     <title>Emergency Command Map</title>
 
     <link rel="stylesheet" href="../css/map.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -24,6 +25,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading map...</div>
+    </div>
     <!-- MAP -->
     <div id="map"></div>
     <div id="debugBadge" class="debug-badge">Missing coords: 0</div>
@@ -92,8 +97,36 @@
       const detailStatus = document.getElementById("detailStatus");
       const detailLocation = document.getElementById("detailLocation");
       const detailDescription = document.getElementById("detailDescription");
+      const pageLoader = document.getElementById("pageLoader");
+      const notifAudio = new Audio("../sounds/notif_alert.mp3");
+      const sosLoopAudio = new Audio("../sounds/sos_alert.mp3");
+      notifAudio.preload = "auto";
+      sosLoopAudio.preload = "auto";
+      sosLoopAudio.loop = true;
       let hasAutoFocused = false;
       let selectedIncidentForManage = null;
+      let assetsReady = true;
+      let mapReady = false;
+      let incidentsReady = false;
+      let loaderHidden = false;
+      let hasProcessedInitialIncidentSnapshot = false;
+      const knownIncidentIds = new Set();
+
+      function hidePageLoader() {
+        if (loaderHidden) {
+          return;
+        }
+        loaderHidden = true;
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
+
+      function tryShowPage() {
+        if (assetsReady && mapReady && incidentsReady) {
+          hidePageLoader();
+        }
+      }
 
       const markerIcon = L.divIcon({
         className: "incident-alert-marker",
@@ -159,6 +192,7 @@
       function openIncidentModal(incident) {
         const coordinates = getIncidentCoordinates(incident);
         selectedIncidentForManage = incident;
+        stopSosLoopAlert();
 
         detailCaller.textContent = incident.callerName || "Unknown Caller";
         detailContact.textContent = incident.contact || "N/A";
@@ -177,6 +211,75 @@
       function closeIncidentModal() {
         incidentModal.classList.add("hidden");
         incidentModal.setAttribute("aria-hidden", "true");
+      }
+
+      function playNotificationAlert() {
+        notifAudio.currentTime = 0;
+        notifAudio.play().catch(() => {
+          // Ignore autoplay restrictions; alert will play after first user interaction.
+        });
+      }
+
+      function playSosLoopAlert() {
+        sosLoopAudio.currentTime = 0;
+        sosLoopAudio.play().catch(() => {
+          // Ignore autoplay restrictions; alert will play after first user interaction.
+        });
+      }
+
+      function stopSosLoopAlert() {
+        if (!sosLoopAudio.paused) {
+          sosLoopAudio.pause();
+          sosLoopAudio.currentTime = 0;
+        }
+      }
+
+      function setupSosAcknowledgeHooks() {
+        const acknowledge = () => {
+          stopSosLoopAlert();
+        };
+        ["click", "keydown", "touchstart"].forEach((eventName) => {
+          document.addEventListener(eventName, acknowledge, true);
+        });
+      }
+
+      function handleNewIncidentAlerts(snapshotIncidents) {
+        const snapshotIds = new Set(snapshotIncidents.map((incident) => incident.id));
+
+        if (!hasProcessedInitialIncidentSnapshot) {
+          snapshotIds.forEach((id) => knownIncidentIds.add(id));
+          hasProcessedInitialIncidentSnapshot = true;
+          return;
+        }
+
+        let hasNewSos = false;
+        let hasNewNonSos = false;
+
+        snapshotIncidents.forEach((incident) => {
+          if (knownIncidentIds.has(incident.id)) {
+            return;
+          }
+
+          const type = String(incident.type || "").toLowerCase();
+          if (type === "sos") {
+            hasNewSos = true;
+          } else {
+            hasNewNonSos = true;
+          }
+          knownIncidentIds.add(incident.id);
+        });
+
+        Array.from(knownIncidentIds).forEach((id) => {
+          if (!snapshotIds.has(id)) {
+            knownIncidentIds.delete(id);
+          }
+        });
+
+        if (hasNewSos) {
+          playSosLoopAlert();
+        } else if (hasNewNonSos) {
+          playNotificationAlert();
+        }
       }
 
       function transferToIncidentsPage(incidentId) {
@@ -386,6 +489,9 @@
         maxZoom: 20,
         attribution: "&copy; OpenStreetMap contributors",
       }).addTo(map);
+      mapReady = true;
+      tryShowPage();
+      setTimeout(hidePageLoader, 3500);
 
       map.on("move zoom resize", updateEdgeIndicators);
 
@@ -398,11 +504,14 @@
         if (!selectedIncidentForManage?.id) {
           return;
         }
+        stopSosLoopAlert();
         closeIncidentModal();
         transferToIncidentsPage(selectedIncidentForManage.id);
       });
+      setupSosAcknowledgeHooks();
 
       subscribeActiveIncidents((incidents) => {
+        handleNewIncidentAlerts(incidents);
         const activeOnly = incidents.filter(
           (incident) =>
             String(incident.status || "").toLowerCase() === "active",
@@ -440,6 +549,8 @@
           missingCount,
           renderedCount: markerRegistry.size,
         });
+        incidentsReady = true;
+        tryShowPage();
       });
     </script>
   </body>

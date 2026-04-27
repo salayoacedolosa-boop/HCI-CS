@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Emergency Response Admin Dashboard</title>
     <link rel="stylesheet" href="../css/menu.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -22,6 +23,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading dashboard...</div>
+    </div>
     <div class="dashboard">
       <!-- SIDEBAR -->
       <div class="sidebar">
@@ -85,9 +90,27 @@
         "reports.html": "Reports",
         "settings.html": "Settings",
       };
+      const pageLoader = document.getElementById("pageLoader");
+      const contentFrame = document.getElementById("contentFrame");
+      let assetsReady = document.readyState === "complete";
+      let sessionReady = false;
+      let frameReady = false;
+
+      function hidePageLoader() {
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
+
+      function tryShowPage() {
+        if (assetsReady && sessionReady && frameReady) {
+          hidePageLoader();
+        }
+      }
 
       function loadPage(page, el) {
-        document.getElementById("contentFrame").src = page;
+        frameReady = false;
+        contentFrame.src = page;
 
         document.querySelectorAll(".sidebar li").forEach((li) => {
           li.classList.remove("active");
@@ -100,6 +123,19 @@
 
       window.loadPage = loadPage;
 
+      contentFrame.addEventListener("load", () => {
+        frameReady = true;
+        tryShowPage();
+      });
+      window.addEventListener(
+        "load",
+        () => {
+          assetsReady = true;
+          tryShowPage();
+        },
+        { once: true },
+      );
+
       try {
         const { profile } = await requireAdminSession({ autoRedirect: true });
         const label = profile.displayName || profile.username || "Admin User";
@@ -107,6 +143,8 @@
       } catch {
         // Redirect is handled by requireAdminSession.
       }
+      sessionReady = true;
+      tryShowPage();
 
       document
         .getElementById("logoutBtn")

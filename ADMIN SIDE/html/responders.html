@@ -6,6 +6,7 @@
     <title>Emergency Hotlines</title>
 
     <link rel="stylesheet" href="../css/responders.css" />
+    <link rel="stylesheet" href="../css/page-loader.css" />
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
       rel="stylesheet"
@@ -13,6 +14,10 @@
   </head>
 
   <body>
+    <div id="pageLoader" class="page-loader" aria-live="polite">
+      <div class="page-loader-spinner"></div>
+      <div class="page-loader-text">Loading responders...</div>
+    </div>
     <div class="header">
       <h2>Responders Hotlines</h2>
 
@@ -99,9 +104,24 @@
       const select = document.getElementById("customSelect");
       const selected = select.querySelector(".select-selected");
       const items = select.querySelector(".select-items");
+      const pageLoader = document.getElementById("pageLoader");
 
       let hotlines = [];
       let activeType = "all";
+      let assetsReady = document.readyState === "complete";
+      let hotlinesReady = false;
+
+      function hidePageLoader() {
+        document.body.classList.add("page-ready");
+        pageLoader?.classList.add("hide");
+        setTimeout(() => pageLoader?.remove(), 250);
+      }
+
+      function tryShowPage() {
+        if (assetsReady && hotlinesReady) {
+          hidePageLoader();
+        }
+      }
 
       function callHotline(number) {
         window.location.href = "tel:" + number;
@@ -224,11 +244,21 @@
       window.closeModal = closeModal;
       window.addHotline = addHotlineEntry;
       window.callHotline = callHotline;
+      window.addEventListener(
+        "load",
+        () => {
+          assetsReady = true;
+          tryShowPage();
+        },
+        { once: true },
+      );
 
       await requireAdminSession({ autoRedirect: true });
       subscribeHotlines((liveHotlines) => {
         hotlines = liveHotlines;
         renderHotlines();
+        hotlinesReady = true;
+        tryShowPage();
       });
     </script>
   </body>
