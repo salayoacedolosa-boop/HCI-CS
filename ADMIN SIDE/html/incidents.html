@@ -167,11 +167,8 @@
           <span class="close" id="actionConfirmClose">&times;</span>
         </div>
         <div class="map-modal-body">
-          <p id="actionConfirmMessage" style="margin: 0 0 1rem 0">-</p>
-          <div
-            class="map-actions"
-            style="display: flex; gap: 0.5rem; justify-content: flex-end"
-          >
+          <p id="actionConfirmMessage" class="action-confirm-message">-</p>
+          <div class="map-actions map-actions-flex">
             <button class="btn" id="actionConfirmCancel">Cancel</button>
             <button class="btn" id="actionConfirmOk">Confirm</button>
           </div>
@@ -203,7 +200,9 @@
         "actionConfirmMessage",
       );
       const actionConfirmClose = document.getElementById("actionConfirmClose");
-      const actionConfirmCancel = document.getElementById("actionConfirmCancel");
+      const actionConfirmCancel = document.getElementById(
+        "actionConfirmCancel",
+      );
       const actionConfirmOk = document.getElementById("actionConfirmOk");
       const incidentContainer = document.getElementById("incidentContainer");
       const searchInput = document.getElementById("searchInput");

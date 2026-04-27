@@ -12,7 +12,7 @@ body {
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   background: radial-gradient(circle at top, #0f1a13, #020617);
   background-repeat: no-repeat;
   background-size: cover;
@@ -75,12 +75,12 @@ body {
   border: none;
   outline: none;
   font-size: 12px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
 }
 
 .search-box input:focus {
-  box-shadow: 0 0 8px rgba(46,121,62,0.4);
+  box-shadow: 0 0 8px rgba(46, 121, 62, 0.4);
 }
 
 .search-box i {
@@ -100,7 +100,7 @@ body {
 }
 
 .select-selected {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   padding: 10px 30px 10px 10px;
   border-radius: 8px;
   cursor: pointer;
@@ -137,7 +137,7 @@ body {
   overflow: hidden;
   display: none;
   z-index: 999;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .custom-select.active .select-items {
@@ -169,11 +169,12 @@ body {
 /* CARD */
 .hotline-card {
   display: block;
-  background: rgba(255,255,255,0.04);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 18px;
   padding: 25px 20px;
   text-align: center;
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   position: relative;
   transition: 0.3s;
@@ -181,7 +182,7 @@ body {
 
 .hotline-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 25px rgba(46,121,62,0.2);
+  box-shadow: 0 0 25px rgba(46, 121, 62, 0.2);
 }
 
 /* ICON */
@@ -200,10 +201,23 @@ body {
 }
 
 /* TEXT */
-.hotline-card h3 { margin: 5px 0; }
-.hotline-card p { margin: 5px 0; font-weight: bold; }
-.hotline-card span { font-size: 11px; opacity: 0.6; }
-.hotline-card small { display:block; margin-top:5px; font-size:11px; opacity:0.6; }
+.hotline-card h3 {
+  margin: 5px 0;
+}
+.hotline-card p {
+  margin: 5px 0;
+  font-weight: bold;
+}
+.hotline-card span {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.hotline-card small {
+  display: block;
+  margin-top: 5px;
+  font-size: 11px;
+  opacity: 0.6;
+}
 
 /* CALL BUTTON */
 .call-btn {
@@ -233,7 +247,7 @@ body {
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.6);
 
   display: flex;
   justify-content: center;
@@ -256,11 +270,12 @@ body {
 
 .modal-content {
   width: 350px;
-  background: rgba(10,20,15,0.95);
+  background: rgba(10, 20, 15, 0.95);
   padding: 20px;
   border-radius: 16px;
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,0.05);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* HEADER */
@@ -279,16 +294,16 @@ body {
 /* 🔥 UNIFY INPUT + SELECT STYLE */
 .modal-body input,
 .modal-body select {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
   width: 100%;
   height: 48px; /* 👈 FIX HEIGHT */
-  
+
   padding: 12px 14px; /* 👈 REMOVE TOP/BOTTOM padding difference */
-  
+
   border-radius: 12px;
   border: none;
 
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
   color: white;
 
   font-size: 14px;
