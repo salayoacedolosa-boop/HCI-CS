@@ -66,6 +66,14 @@
                   </svg>
                   <span>Sign in with Google</span>
                 </button>
+                <button
+                  id="continueGuestButton"
+                  class="auto-btn guest-btn"
+                  style="margin-top: 1em; background: #eee; color: #333"
+                >
+                  <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                  <span>Continue without signing in</span>
+                </button>
               </div>
             </section>
           </main>
@@ -99,6 +107,14 @@
       import { showToast } from "../api/notifications.js";
 
       const autoLoginButton = document.getElementById("autoLoginButton");
+
+      const continueGuestButton = document.getElementById(
+        "continueGuestButton",
+      );
+
+      continueGuestButton.addEventListener("click", () => {
+        window.location.href = "home.html";
+      });
 
       const firebaseConfig = {
         apiKey: import.meta.env.VITE_FIREBASE_API_KEY,

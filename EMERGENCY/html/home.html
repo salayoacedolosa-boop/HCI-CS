@@ -36,6 +36,82 @@
           </div>
         </div>
 
+        <!-- Guest Info Modal -->
+        <div
+          id="guestInfoModal"
+          class="profile-modal"
+          aria-hidden="true"
+          style="display: none"
+        >
+          <div
+            class="profile-modal-backdrop"
+            onclick="closeGuestInfoModal()"
+          ></div>
+          <div
+            class="profile-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guestInfoTitle"
+          >
+            <div class="profile-modal-header">
+              <h2 id="guestInfoTitle">Your Information</h2>
+              <button
+                type="button"
+                class="profile-modal-close"
+                onclick="closeGuestInfoModal()"
+                aria-label="Close guest info"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <form id="guestInfoForm" class="profile-form">
+              <label class="profile-input-label" for="guestNameInput"
+                >Name</label
+              >
+              <input
+                id="guestNameInput"
+                class="profile-input"
+                type="text"
+                placeholder="Enter your name"
+                required
+              />
+              <label class="profile-input-label" for="guestPhoneInput"
+                >Phone Number</label
+              >
+              <input
+                id="guestPhoneInput"
+                class="profile-input"
+                type="tel"
+                placeholder="Enter your phone number"
+                required
+              />
+              <label class="profile-input-label" for="guestAddressInput"
+                >Address</label
+              >
+              <textarea
+                id="guestAddressInput"
+                class="profile-input profile-textarea"
+                rows="3"
+                placeholder="Enter your address"
+                required
+              ></textarea>
+              <label class="profile-input-label" for="guestStudentIdInput"
+                >Student ID</label
+              >
+              <input
+                id="guestStudentIdInput"
+                class="profile-input"
+                type="text"
+                placeholder="Enter your student ID"
+                required
+              />
+              <button type="submit" class="profile-save-btn">
+                Save Information
+              </button>
+            </form>
+          </div>
+        </div>
+
         <div id="profileModal" class="profile-modal" aria-hidden="true">
           <div
             class="profile-modal-backdrop"
@@ -59,62 +135,134 @@
               </button>
             </div>
 
-            <div class="profile-grid">
-              <div class="profile-row">
-                <span class="profile-label">Name</span>
-                <span class="profile-value" id="profileName">Not provided</span>
-              </div>
-              <div class="profile-row">
-                <span class="profile-label">Email</span>
-                <span class="profile-value" id="profileEmail"
-                  >Not provided</span
+            <!-- GUEST MODE: Editable fields, no edit button, logout at bottom -->
+            <div id="profileGuestFields" style="display: none">
+              <form id="guestProfileForm" class="profile-form">
+                <label class="profile-input-label" for="profileNameInput"
+                  >Name</label
                 >
-              </div>
-              <div class="profile-row">
-                <span class="profile-label">User ID</span>
-                <span class="profile-value" id="profileUid">Not provided</span>
-              </div>
+                <input
+                  id="profileNameInput"
+                  class="profile-input"
+                  type="text"
+                  placeholder="Enter your name"
+                  required
+                />
+                <label
+                  class="profile-input-label"
+                  for="guestProfileStudentIdInput"
+                >
+                  >Student ID</label
+                >
+                <input
+                  id="guestProfileStudentIdInput"
+                  class="profile-input"
+                  type="text"
+                  placeholder="Enter your student ID"
+                  required
+                />
+                <button type="submit" class="profile-save-btn">
+                  Save Information
+                </button>
+              </form>
             </div>
 
-            <form class="profile-form" onsubmit="saveProfileInfo(event)">
-              <label class="profile-input-label" for="profilePhoneInput"
-                >Phone Number</label
-              >
-              <input
-                id="profilePhoneInput"
-                class="profile-input"
-                type="tel"
-                placeholder="Enter your phone number"
-              />
+            <!-- LOGGED IN MODE: Standard display -->
+            <div id="profileUserFields">
+              <div class="profile-grid">
+                <div class="profile-row">
+                  <span class="profile-label">Name</span>
+                  <span class="profile-value" id="profileName"
+                    >Not provided</span
+                  >
+                </div>
+                <div class="profile-row">
+                  <span class="profile-label">Email</span>
+                  <span class="profile-value" id="profileEmail"
+                    >Not provided</span
+                  >
+                </div>
+                <div class="profile-row">
+                  <span class="profile-label">User ID</span>
+                  <span class="profile-value" id="profileUid"
+                    >Not provided</span
+                  >
+                </div>
+                <!-- Student ID display row removed; use editable Student ID input below -->
+              </div>
+              <form class="profile-form" onsubmit="saveProfileInfo(event)">
+                <label class="profile-input-label" for="profileNameEditInput"
+                  >Name</label
+                >
+                <input
+                  id="profileNameEditInput"
+                  class="profile-input"
+                  type="text"
+                  placeholder="Enter your name"
+                />
+                <label class="profile-input-label" for="profileEmailEditInput"
+                  >Email</label
+                >
+                <input
+                  id="profileEmailEditInput"
+                  class="profile-input"
+                  type="email"
+                  placeholder="Enter your email"
+                />
+                <label class="profile-input-label" for="profilePhoneInput"
+                  >Phone Number</label
+                >
+                <input
+                  id="profilePhoneInput"
+                  class="profile-input"
+                  type="tel"
+                  placeholder="Enter your phone number"
+                />
+                <label class="profile-input-label" for="profileAddressInput"
+                  >Address</label
+                >
+                <textarea
+                  id="profileAddressInput"
+                  class="profile-input profile-textarea"
+                  rows="3"
+                  placeholder="Enter your address"
+                ></textarea>
+                <label class="profile-input-label" for="profileStudentIdInput"
+                  >Student ID</label
+                >
+                <input
+                  id="profileStudentIdInput"
+                  class="profile-input"
+                  type="text"
+                  placeholder="Enter your student ID"
+                />
+                <button
+                  type="submit"
+                  class="profile-save-btn"
+                  id="profileSaveBtn"
+                >
+                  Save Information
+                </button>
+              </form>
+            </div>
 
-              <label class="profile-input-label" for="profileAddressInput"
-                >Address</label
-              >
-              <textarea
-                id="profileAddressInput"
-                class="profile-input profile-textarea"
-                rows="3"
-                placeholder="Enter your address"
-              ></textarea>
-
-              <label class="profile-input-label" for="profileStudentIdInput"
-                >Student ID</label
-              >
-              <input
-                id="profileStudentIdInput"
-                class="profile-input"
-                type="text"
-                placeholder="Enter your student ID"
-              />
-
-              <button
-                type="submit"
-                class="profile-save-btn"
-                id="profileSaveBtn"
-              >
-                Save Information
-              </button>
-            </form>
+            <button
+              id="logoutButton"
+              class="profile-logout-btn"
+              style="
+                background: #e74c3c;
+                color: #fff;
+                width: 100%;
+                padding: 0.75em;
+                border: none;
+                border-radius: 6px;
+                font-size: 1em;
+                cursor: pointer;
+                margin-top: 2em;
+              "
+            >
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
           </div>
         </div>
 
@@ -182,7 +330,39 @@
         serverTimestamp,
         setDoc,
       } from "firebase/firestore";
-      import { getAuth, onAuthStateChanged } from "firebase/auth";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signInAnonymously,
+      } from "firebase/auth";
+      import { userSignOut } from "../api/auth.js";
+
+      // Guest info helpers
+      const GUEST_INFO_KEY = "guest_info";
+      function getGuestInfo() {
+        try {
+          return JSON.parse(localStorage.getItem(GUEST_INFO_KEY) || "null");
+        } catch {
+          return null;
+        }
+      }
+      function setGuestInfo(info) {
+        localStorage.setItem(GUEST_INFO_KEY, JSON.stringify(info));
+      }
+      function clearGuestInfo() {
+        localStorage.removeItem(GUEST_INFO_KEY);
+      }
+      function getGuestSessionId() {
+        const key = "guest_session_id";
+        let sessionId = localStorage.getItem(key);
+        if (!sessionId) {
+          sessionId = `guest_${Date.now()}_${Math.random()
+            .toString(36)
+            .slice(2, 10)}`;
+          localStorage.setItem(key, sessionId);
+        }
+        return sessionId;
+      }
       import {
         createSOSIncident,
         createEmergencyIncident,
@@ -265,6 +445,10 @@
         localStorage.setItem(PROFILE_EXTRAS_LOCAL_KEY, JSON.stringify(extras));
       }
 
+      function isGuestModeActive() {
+        return !currentUser || currentUser.isAnonymous;
+      }
+
       function applyGlobalTheme(theme) {
         const isDark =
           theme === "dark" ||
@@ -328,6 +512,7 @@
 
       // Make functions globally available
       window.goToProfile = goToProfile;
+      window.closeProfileModal = closeProfileModal;
       window.getLocation = getLocation;
       window.triggerEmergency = triggerEmergency;
       window.triggerSOS = triggerSOS;
@@ -347,24 +532,195 @@
         goSettings,
       };
 
+      // Guest Info Modal logic
+      const guestInfoModal = document.getElementById("guestInfoModal");
+      const guestInfoForm = document.getElementById("guestInfoForm");
+      function openGuestInfoModal() {
+        guestInfoModal.style.display = "block";
+        guestInfoModal.setAttribute("aria-hidden", "false");
+        // Pre-fill if info exists
+        const info = getGuestInfo();
+        if (info) {
+          document.getElementById("guestNameInput").value = info.name || "";
+          document.getElementById("guestPhoneInput").value = info.phone || "";
+          document.getElementById("guestAddressInput").value =
+            info.address || "";
+          document.getElementById("guestStudentIdInput").value =
+            info.studentId || "";
+        }
+      }
+      function closeGuestInfoModal() {
+        guestInfoModal.style.display = "none";
+        guestInfoModal.setAttribute("aria-hidden", "true");
+      }
+      window.closeGuestInfoModal = closeGuestInfoModal;
+      guestInfoForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const info = {
+          name: document.getElementById("guestNameInput").value.trim(),
+          phone: document.getElementById("guestPhoneInput").value.trim(),
+          address: document.getElementById("guestAddressInput").value.trim(),
+          studentId: document
+            .getElementById("guestStudentIdInput")
+            .value.trim(),
+        };
+        setGuestInfo(info);
+        closeGuestInfoModal();
+        showGuestInfoInProfile();
+      });
+
+      const guestProfileForm = document.getElementById("guestProfileForm");
+      guestProfileForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const name = document.getElementById("profileNameInput").value.trim();
+        const studentId = document
+          .getElementById("guestProfileStudentIdInput")
+          .value.trim();
+
+        if (!name || !studentId) {
+          showToast("Please fill in your name and student ID.", "error");
+          return;
+        }
+
+        const existing = getGuestInfo() || {};
+        const info = {
+          ...existing,
+          name,
+          studentId,
+        };
+        setGuestInfo(info);
+        showGuestInfoInProfile();
+
+        if (db) {
+          try {
+            await setDoc(
+              doc(db, "guest_profiles", getGuestSessionId()),
+              {
+                ...info,
+                updatedAt: serverTimestamp(),
+              },
+              { merge: true },
+            );
+          } catch (error) {
+            console.error("Unable to sync guest profile to Firestore:", error);
+          }
+        }
+
+        showToast("Guest information saved.", "success");
+      });
+
+      function showGuestInfoInProfile() {
+        const info = getGuestInfo();
+        if (info) {
+          document.getElementById("profileName").textContent =
+            info.name || "Not provided";
+          document.getElementById("profileEmail").textContent =
+            info.email || "Guest User";
+          document.getElementById("profileUid").textContent = "Not provided";
+          setProfileInputValue("profileNameEditInput", info.name || "");
+          setProfileInputValue("profileEmailEditInput", info.email || "");
+          const guestNameInput = document.getElementById("profileNameInput");
+          const guestStudentIdInput = document.getElementById(
+            "guestProfileStudentIdInput",
+          );
+          const userStudentIdInput = document.getElementById(
+            "profileStudentIdInput",
+          );
+          if (guestNameInput) {
+            guestNameInput.value = info.name || "";
+          }
+          if (guestStudentIdInput) {
+            guestStudentIdInput.value = info.studentId || "";
+          }
+          if (userStudentIdInput) {
+            userStudentIdInput.value = info.studentId || "";
+          }
+        } else {
+          document.getElementById("profileName").textContent = "Not provided";
+          document.getElementById("profileEmail").textContent = "Not provided";
+          document.getElementById("profileUid").textContent = "Not provided";
+          setProfileInputValue("profileNameEditInput", "");
+          setProfileInputValue("profileEmailEditInput", "");
+          const guestNameInput = document.getElementById("profileNameInput");
+          const guestStudentIdInput = document.getElementById(
+            "guestProfileStudentIdInput",
+          );
+          const userStudentIdInput = document.getElementById(
+            "profileStudentIdInput",
+          );
+          if (guestNameInput) {
+            guestNameInput.value = "";
+          }
+          if (guestStudentIdInput) {
+            guestStudentIdInput.value = "";
+          }
+          if (userStudentIdInput) {
+            userStudentIdInput.value = "";
+          }
+        }
+      }
+
+      // Logout button logic
+      const logoutButton = document.getElementById("logoutButton");
+      if (logoutButton) {
+        logoutButton.addEventListener("click", async () => {
+          if (auth) {
+            try {
+              await userSignOut(auth);
+              window.location.href = "login.html";
+            } catch (e) {
+              alert("Logout failed. Please try again.");
+            }
+          } else {
+            window.location.href = "login.html";
+          }
+        });
+      }
+
       /**
        * Initialize auth state listener
        */
       if (auth) {
         onAuthStateChanged(auth, (user) => {
-          if (user) {
+          if (user && !user.isAnonymous) {
             currentUser = user;
             document.getElementById("userDisplay").textContent =
               `${user.displayName || user.email}`;
             populateProfileInfo();
             console.log("User logged in:", user.email);
           } else {
-            currentUser = null;
+            currentUser = user && user.isAnonymous ? user : null;
             document.getElementById("userDisplay").textContent =
               "Login using your PLP Account";
             resetProfileInfo();
+            // If guest info missing, show modal
+            if (!getGuestInfo()) {
+              openGuestInfoModal();
+            } else {
+              showGuestInfoInProfile();
+            }
           }
         });
+      }
+
+      async function resolveIncidentUserIdForGuest() {
+        if (!auth) {
+          return getGuestSessionId();
+        }
+
+        if (auth.currentUser?.uid) {
+          return auth.currentUser.uid;
+        }
+
+        try {
+          const credential = await signInAnonymously(auth);
+          currentUser = credential.user;
+          return credential.user.uid;
+        } catch (error) {
+          console.error("Anonymous sign-in failed for guest incident:", error);
+          return getGuestSessionId();
+        }
       }
 
       function getProfileField(profile, keys) {
@@ -431,6 +787,8 @@
         setProfileField("profileName", "Not provided");
         setProfileField("profileEmail", "Not provided");
         setProfileField("profileUid", "Not provided");
+        setProfileInputValue("profileNameEditInput", "");
+        setProfileInputValue("profileEmailEditInput", "");
         setProfileInputValue("profilePhoneInput", "");
         setProfileInputValue("profileAddressInput", "");
         setProfileInputValue("profileStudentIdInput", "");
@@ -492,6 +850,12 @@
         setProfileField("profileName", name);
         setProfileField("profileEmail", currentUser.email || "Not provided");
         setProfileField("profileUid", currentUser.uid || "Not provided");
+        setProfileInputValue("profileNameEditInput", name);
+        setProfileInputValue("profileEmailEditInput", currentUser.email || "");
+        const resolvedStudentId =
+          studentId !== "Not provided"
+            ? studentId
+            : localExtras.studentId || "Not provided";
 
         setProfileInputValue(
           "profilePhoneInput",
@@ -503,12 +867,7 @@
           "profileAddressInput",
           address !== "Not provided" ? address : localExtras.address || "",
         );
-        setProfileInputValue(
-          "profileStudentIdInput",
-          studentId !== "Not provided"
-            ? studentId
-            : localExtras.studentId || "",
-        );
+        setProfileInputValue("profileStudentIdInput", resolvedStudentId);
 
         currentProfileData = profileData;
       }
@@ -516,28 +875,62 @@
       async function saveProfileInfo(event) {
         event.preventDefault();
 
-        if (!currentUser) {
-          showToast("Please login first", "error");
-          window.location.href = "login.html";
-          return;
-        }
-
-        if (!db) {
-          showToast("Database is not configured.", "error");
-          return;
-        }
-
+        const nameInput = document.getElementById("profileNameEditInput");
+        const emailInput = document.getElementById("profileEmailEditInput");
         const phoneInput = document.getElementById("profilePhoneInput");
         const addressInput = document.getElementById("profileAddressInput");
         const studentIdInput = document.getElementById("profileStudentIdInput");
         const saveBtn = document.getElementById("profileSaveBtn");
 
+        const name = nameInput.value.trim();
+        const email = emailInput.value.trim();
         const phone = phoneInput.value.trim();
         const address = addressInput.value.trim();
         const studentId = studentIdInput.value.trim();
 
-        if (!phone && !address && !studentId) {
+        if (!name && !email && !phone && !address && !studentId) {
           showToast("Enter at least one profile field first.", "error");
+          return;
+        }
+
+        if (!isGuestModeActive() && !db) {
+          showToast("Database is not configured.", "error");
+          return;
+        }
+
+        if (isGuestModeActive()) {
+          const existingGuest = getGuestInfo() || {};
+          const info = {
+            ...existingGuest,
+            name: name || existingGuest.name || "Guest User",
+            email: email || existingGuest.email || "",
+            phone,
+            address,
+            studentId,
+          };
+
+          setGuestInfo(info);
+
+          if (db) {
+            try {
+              await setDoc(
+                doc(db, "guest_profiles", getGuestSessionId()),
+                {
+                  ...info,
+                  updatedAt: serverTimestamp(),
+                },
+                { merge: true },
+              );
+            } catch (error) {
+              console.error(
+                "Unable to sync guest profile to Firestore:",
+                error,
+              );
+            }
+          }
+
+          showGuestInfoInProfile();
+          showToast("Guest information saved.", "success");
           return;
         }
 
@@ -592,12 +985,6 @@
        * Trigger SOS incident
        */
       async function triggerSOS() {
-        if (!currentUser) {
-          showToast("Please login first", "error");
-          goToProfile();
-          return;
-        }
-
         if (!getBoolSetting("locationShare", true)) {
           showToast(
             "Location sharing is disabled in Settings. Enable it to use SOS.",
@@ -605,25 +992,30 @@
           );
           return;
         }
-
         try {
           showToast("Getting your location...", "info");
           const location = await getDeviceLocation();
           currentLocation = location;
-          const reporter = getReporterDetails();
-
-          const result = await createSOSIncident(
-            db,
-            currentUser.uid,
-            location,
-            reporter,
-          );
-
+          let reporter, uid;
+          if (!isGuestModeActive()) {
+            reporter = getReporterDetails();
+            uid = currentUser.uid;
+          } else {
+            const guest = getGuestInfo();
+            reporter = {
+              callerName: guest?.name || "Guest User",
+              contact: guest?.phone || "",
+              email: "",
+              address: guest?.address || "",
+              studentId: guest?.studentId || "",
+            };
+            uid = await resolveIncidentUserIdForGuest();
+          }
+          const result = await createSOSIncident(db, uid, location, reporter);
           if (result.success) {
             if (getBoolSetting("autoCall", true)) {
               await triggerEmergencyHotlineCall();
             }
-
             showAlertModal(
               "SOS ACTIVATED",
               "Emergency responders have been notified of your location.",
@@ -639,6 +1031,55 @@
           showToast("Error: " + error.message, "error");
         }
       }
+
+      // Patch: Make other incident buttons work for guests
+      window.triggerEmergency = async function (type) {
+        if (!getBoolSetting("locationShare", true)) {
+          showToast("Location sharing is disabled in Settings.", "error");
+          return;
+        }
+        try {
+          showToast("Getting your location...", "info");
+          const location = await getDeviceLocation();
+          currentLocation = location;
+          let reporter, uid;
+          if (!isGuestModeActive()) {
+            reporter = getReporterDetails();
+            uid = currentUser.uid;
+          } else {
+            const guest = getGuestInfo();
+            reporter = {
+              callerName: guest?.name || "Guest User",
+              contact: guest?.phone || "",
+              email: "",
+              address: guest?.address || "",
+              studentId: guest?.studentId || "",
+            };
+            uid = await resolveIncidentUserIdForGuest();
+          }
+          const result = await createEmergencyIncident(
+            db,
+            uid,
+            type,
+            location,
+            reporter,
+          );
+          if (result.success) {
+            showAlertModal(
+              "Incident Reported",
+              "Emergency responders have been notified of your location.",
+              () => {
+                loadPanel("history");
+              },
+            );
+          } else {
+            showToast("Failed to send incident: " + result.error, "error");
+          }
+        } catch (error) {
+          console.error("Incident error:", error);
+          showToast("Error: " + error.message, "error");
+        }
+      };
 
       function sanitizeDialNumber(rawPhoneNumber) {
         if (!rawPhoneNumber) {
@@ -675,28 +1116,19 @@
        * Get and display device location
        */
       async function getLocation() {
-        if (!currentUser) {
-          showToast("Please login first", "error");
-          goToProfile();
-          return;
-        }
-
+        // Allow guests to get location
         if (!getBoolSetting("locationShare", true)) {
           showToast("Location sharing is disabled in Settings.", "error");
           return;
         }
-
         try {
           showToast("Getting location...", "info");
           const location = await getDeviceLocation();
           currentLocation = location;
-
           const coordText = `${location.latitude.toFixed(6)}, ${location.longitude.toFixed(6)}`;
           document.getElementById("locationDisplay").textContent = coordText;
           showToast(`Showing map: ${coordText}`, "success");
-
           openMapModal(location.latitude, location.longitude);
-
           console.log("Location:", location);
         } catch (error) {
           console.error("Location error:", error);
@@ -773,20 +1205,33 @@
        * Navigation functions
        */
       async function goToProfile() {
-        if (!currentUser) {
-          window.location.href = "login.html";
-          return;
-        }
-
-        await populateProfileInfo();
         const profileModal = document.getElementById("profileModal");
+        const guestFields = document.getElementById("profileGuestFields");
+        const userFields = document.getElementById("profileUserFields");
+        const nameEditInput = document.getElementById("profileNameEditInput");
+        const emailEditInput = document.getElementById("profileEmailEditInput");
         profileModal.classList.add("is-open");
+        profileModal.style.display = "block";
         profileModal.setAttribute("aria-hidden", "false");
+        if (!isGuestModeActive()) {
+          nameEditInput.disabled = true;
+          emailEditInput.disabled = true;
+          guestFields.style.display = "none";
+          userFields.style.display = "";
+          await populateProfileInfo();
+        } else {
+          nameEditInput.disabled = false;
+          emailEditInput.disabled = false;
+          guestFields.style.display = "none";
+          userFields.style.display = "";
+          showGuestInfoInProfile();
+        }
       }
 
       function closeProfileModal() {
         const profileModal = document.getElementById("profileModal");
         profileModal.classList.remove("is-open");
+        profileModal.style.display = "none";
         profileModal.setAttribute("aria-hidden", "true");
       }
 

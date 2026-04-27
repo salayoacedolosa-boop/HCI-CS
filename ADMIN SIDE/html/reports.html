@@ -112,6 +112,10 @@
       accidentGradient.addColorStop(0, "#ffd633");
       accidentGradient.addColorStop(1, "#e6ac00");
 
+      const sosGradient = ctx.createLinearGradient(0, 0, 0, 250);
+      sosGradient.addColorStop(0, "#40c4ff");
+      sosGradient.addColorStop(1, "#0077b6");
+
       const otherGradient = ctx.createLinearGradient(0, 0, 0, 250);
       otherGradient.addColorStop(0, "#9e9e9e");
       otherGradient.addColorStop(1, "#4f4f4f");
@@ -119,14 +123,15 @@
       const chart = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: ["Fire", "Medical", "Accident", "Others"],
+          labels: ["Fire", "Medical", "Accident", "SOS", "Others"],
           datasets: [
             {
-              data: [0, 0, 0, 0],
+              data: [0, 0, 0, 0, 0],
               backgroundColor: [
                 fireGradient,
                 medicalGradient,
                 accidentGradient,
+                sosGradient,
                 otherGradient,
               ],
               borderRadius: 6,
@@ -149,6 +154,7 @@
         let fire = 0;
         let medical = 0;
         let accident = 0;
+        let sos = 0;
         let other = 0;
 
         incidents.forEach((incident) => {
@@ -156,10 +162,11 @@
           if (type === "fire") fire += 1;
           else if (type === "medical") medical += 1;
           else if (type === "accident") accident += 1;
+          else if (type === "sos") sos += 1;
           else other += 1;
         });
 
-        chart.data.datasets[0].data = [fire, medical, accident, other];
+        chart.data.datasets[0].data = [fire, medical, accident, sos, other];
         chart.update();
       }
 

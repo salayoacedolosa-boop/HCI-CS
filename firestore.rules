@@ -12,6 +12,13 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == uid;
     }
 
+    function isGuestIncidentCreate() {
+      return request.auth == null
+             && request.resource.data.userId is string
+             && request.resource.data.userId.matches("^guest_[A-Za-z0-9_\\-]+$")
+             && request.resource.data.type in ["sos", "injury", "fire", "crime", "accident"];
+    }
+
     function isSeedAdminEmail() {
       return isSignedIn()
              && request.auth.token.email in [
@@ -55,11 +62,14 @@ service cloud.firestore {
     // Any authenticated user can create an incident.
     // Users can only read or update their own incidents.
     match /incidents/{incidentId} {
-      allow create: if isSignedIn()
-                    && (
-                      request.resource.data.userId == request.auth.uid
-                      || isAdmin()
-                    );
+      allow create: if (
+                      isSignedIn()
+                      && (
+                        request.resource.data.userId == request.auth.uid
+                        || isAdmin()
+                      )
+                    )
+                    || isGuestIncidentCreate();
 
       allow read, update, delete: if isAdmin()
                                   || (
