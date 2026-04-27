@@ -415,6 +415,40 @@ export function subscribeHotlines(callback) {
   });
 }
 
+export function subscribeMapMarkers(callback) {
+  const markersRef = collection(db, "map_markers");
+  const markersQuery = query(markersRef, orderBy("createdAt", "desc"), limit(500));
+
+  return onSnapshot(markersQuery, (snapshot) => {
+    const markers = snapshot.docs.map((entry) => ({
+      id: entry.id,
+      ...entry.data(),
+    }));
+    callback(markers);
+  });
+}
+
+export async function addMapMarker(marker) {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("Authentication required.");
+  }
+
+  await addDoc(collection(db, "map_markers"), {
+    name: marker.name || "Custom Marker",
+    type: marker.type || "custom",
+    icon: marker.icon || "fa-location-dot",
+    color: marker.color || "#2563eb",
+    location: {
+      lat: Number(marker.lat),
+      lng: Number(marker.lng),
+    },
+    createdBy: user.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function addHotline(hotline) {
   const data = {
     ...hotline,

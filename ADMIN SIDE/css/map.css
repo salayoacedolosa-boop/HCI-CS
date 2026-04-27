@@ -49,6 +49,14 @@ body {
   border: 0;
 }
 
+.incident-alert-marker.has-pulse .pulse-ring {
+  display: block;
+}
+
+.incident-alert-marker:not(.has-pulse) .pulse-ring {
+  display: none;
+}
+
 .incident-alert-marker .pulse-ring {
   position: absolute;
   width: 40px;
@@ -78,6 +86,31 @@ body {
 
 .incident-alert-marker .marker-core i {
   font-size: 14px;
+}
+
+.incident-alert-marker.type-sos .marker-core {
+  background: #ef4444;
+}
+
+.incident-alert-marker.type-fire .marker-core {
+  background: #f97316;
+}
+
+.incident-alert-marker.type-medical .marker-core {
+  background: #dc2626;
+}
+
+.incident-alert-marker.type-accident .marker-core {
+  background: #eab308;
+}
+
+.incident-alert-marker.type-crime .marker-core,
+.incident-alert-marker.type-security .marker-core {
+  background: #2563eb;
+}
+
+.incident-alert-marker.type-injury .marker-core {
+  background: #be123c;
 }
 
 @keyframes pulse-alert {
@@ -122,6 +155,278 @@ body {
 
 .edge-indicator:hover {
   transform: scale(1.08);
+}
+
+.map-toolbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1200;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.add-marker-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
+  cursor: pointer;
+}
+
+.add-marker-btn:hover {
+  filter: brightness(1.08);
+}
+
+.sound-enable-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0b1320;
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+  box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
+  cursor: pointer;
+  display: none;
+}
+
+.sound-enable-btn.is-visible {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.toast-stack {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100vw - 32px));
+}
+
+.toast {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 14px;
+  padding: 12px 12px;
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.55);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.toast .toast-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.toast .toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast .toast-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.toast .toast-subtitle {
+  font-size: 12px;
+  color: #cbd5e1;
+  margin: 4px 0 0 0;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.toast .toast-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.toast .toast-actions button {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.toast .toast-actions button:hover {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+.notification-panel {
+  position: fixed;
+  right: 16px;
+  top: 62px;
+  z-index: 1200;
+  width: min(360px, calc(100vw - 32px));
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 18px 50px rgba(2, 6, 23, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.notification-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.notification-panel-header h4 {
+  margin: 0;
+  font-size: 13px;
+  color: #e2e8f0;
+}
+
+.notification-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid rgba(239, 68, 68, 0.6);
+  color: #fecaca;
+}
+
+.notification-panel-header .panel-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notification-panel-header button {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 12px;
+  color: #e2e8f0;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.notification-panel-header button:hover {
+  background: rgba(148, 163, 184, 0.28);
+}
+
+.notification-list {
+  padding: 10px 10px 12px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-item {
+  border-radius: 14px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(2, 6, 23, 0.65);
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.notification-item .notif-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-item .notif-main {
+  min-width: 0;
+}
+
+.notification-item .notif-main strong {
+  display: block;
+  font-size: 12px;
+  color: #f8fafc;
+}
+
+.notification-item .notif-main span {
+  display: block;
+  font-size: 11px;
+  color: #cbd5e1;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notification-item .notif-view {
+  border: none;
+  border-radius: 10px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 12px;
+  color: #0b1320;
+  background: #bbf7d0;
+}
+
+.notification-item .notif-view:hover {
+  filter: brightness(0.95);
+}
+
+.marker-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.marker-modal-body input,
+.marker-modal-body select {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  color: #fff;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.marker-modal-body .hint {
+  margin: 0;
+  color: #bfdbfe;
+  font-size: 12px;
+}
+
+.custom-map-marker i {
+  font-size: 18px;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 .incident-modal {

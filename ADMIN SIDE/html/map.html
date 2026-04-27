@@ -31,7 +31,34 @@
     </div>
     <!-- MAP -->
     <div id="map"></div>
+    <div class="map-toolbar">
+      <button type="button" class="add-marker-btn" id="openMarkerModalBtn">
+        <i class="fa-solid fa-map-pin"></i> Add Marker
+      </button>
+      <button type="button" class="sound-enable-btn" id="enableSoundBtn">
+        <i class="fa-solid fa-volume-high"></i> Enable Sound
+      </button>
+    </div>
     <div id="debugBadge" class="debug-badge">Missing coords: 0</div>
+    <div class="notification-panel" id="notificationPanel" aria-live="polite">
+      <div class="notification-panel-header">
+        <div>
+          <h4>
+            New incidents
+            <span class="notification-badge" id="notificationBadge">0</span>
+          </h4>
+        </div>
+        <div class="panel-actions">
+          <button type="button" id="clearNotificationsBtn">Clear</button>
+        </div>
+      </div>
+      <div class="notification-list" id="notificationList">
+        <div style="color:#94a3b8;font-size:12px;padding:8px 6px;">
+          No new incidents.
+        </div>
+      </div>
+    </div>
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
     <div id="incidentModal" class="incident-modal hidden" aria-hidden="true">
       <div class="incident-modal-backdrop"></div>
       <div class="incident-modal-card" role="dialog" aria-modal="true">
@@ -72,18 +99,66 @@
       </div>
     </div>
 
+    <div id="markerModal" class="incident-modal hidden" aria-hidden="true">
+      <div class="incident-modal-backdrop"></div>
+      <div class="incident-modal-card" role="dialog" aria-modal="true">
+        <div class="incident-modal-header">
+          <h3>Add Custom Marker</h3>
+          <button type="button" class="modal-close-btn" id="closeMarkerModalBtn">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="marker-modal-body">
+          <input id="markerNameInput" type="text" placeholder="Marker name" />
+          <select id="markerTypeSelect" title="Marker type">
+            <option value="hospital">Hospital</option>
+            <option value="fire-station">Fire Station</option>
+            <option value="police-station">Police Station</option>
+            <option value="evacuation-site">Evacuation Site</option>
+            <option value="custom">Custom</option>
+          </select>
+          <select id="markerIconSelect" title="Marker icon">
+            <option value="fa-hospital">Hospital</option>
+            <option value="fa-fire-extinguisher">Fire</option>
+            <option value="fa-shield-halved">Police</option>
+            <option value="fa-house">Evacuation</option>
+            <option value="fa-location-dot">Pin</option>
+          </select>
+          <input id="markerColorInput" type="color" value="#2563eb" />
+          <p class="hint">After saving, click anywhere on the map to place it.</p>
+        </div>
+        <div class="incident-modal-actions">
+          <button type="button" class="secondary-btn" id="cancelMarkerBtn">
+            Cancel
+          </button>
+          <button type="button" class="primary-btn" id="saveMarkerBtn">
+            Save & Place
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script type="module">
       import {
+        addMapMarker,
         requireAdminSession,
         subscribeActiveIncidents,
+        subscribeMapMarkers,
       } from "../api/firebase_admin.js";
 
       let map;
       let markerRegistry = new Map();
       let incidentRegistry = new Map();
       let edgeIndicatorRegistry = new Map();
+      let customMarkerRegistry = new Map();
       let edgeLayer;
       const debugBadge = document.getElementById("debugBadge");
+      const notificationBadge = document.getElementById("notificationBadge");
+      const notificationList = document.getElementById("notificationList");
+      const clearNotificationsBtn = document.getElementById(
+        "clearNotificationsBtn",
+      );
+      const toastStack = document.getElementById("toastStack");
       const incidentModal = document.getElementById("incidentModal");
       const closeIncidentModalBtn =
         document.getElementById("closeIncidentModal");
@@ -97,12 +172,23 @@
       const detailStatus = document.getElementById("detailStatus");
       const detailLocation = document.getElementById("detailLocation");
       const detailDescription = document.getElementById("detailDescription");
+      const enableSoundBtn = document.getElementById("enableSoundBtn");
+      const openMarkerModalBtn = document.getElementById("openMarkerModalBtn");
+      const markerModal = document.getElementById("markerModal");
+      const closeMarkerModalBtn = document.getElementById("closeMarkerModalBtn");
+      const cancelMarkerBtn = document.getElementById("cancelMarkerBtn");
+      const saveMarkerBtn = document.getElementById("saveMarkerBtn");
+      const markerNameInput = document.getElementById("markerNameInput");
+      const markerTypeSelect = document.getElementById("markerTypeSelect");
+      const markerIconSelect = document.getElementById("markerIconSelect");
+      const markerColorInput = document.getElementById("markerColorInput");
       const pageLoader = document.getElementById("pageLoader");
       const notifAudio = new Audio("../sounds/notif_alert.mp3");
       const sosLoopAudio = new Audio("../sounds/sos_alert.mp3");
       notifAudio.preload = "auto";
       sosLoopAudio.preload = "auto";
       sosLoopAudio.loop = true;
+      let audioUnlocked = false;
       let hasAutoFocused = false;
       let selectedIncidentForManage = null;
       let assetsReady = true;
@@ -111,6 +197,8 @@
       let loaderHidden = false;
       let hasProcessedInitialIncidentSnapshot = false;
       const knownIncidentIds = new Set();
+      let pendingCustomMarker = null;
+      const unseenIncidents = new Map();
 
       function hidePageLoader() {
         if (loaderHidden) {
@@ -128,12 +216,73 @@
         }
       }
 
-      const markerIcon = L.divIcon({
-        className: "incident-alert-marker",
-        html: '<span class="pulse-ring"></span><span class="marker-core"><i class="fa-solid fa-triangle-exclamation"></i></span>',
-        iconSize: [42, 42],
-        iconAnchor: [21, 21],
-      });
+      function getIncidentVisual(type) {
+        const normalized = String(type || "").toLowerCase().trim();
+        if (normalized === "sos") {
+          return {
+            icon: "fa-triangle-exclamation",
+            color: "#ef4444",
+            className: "type-sos",
+            pulse: true,
+          };
+        }
+        if (normalized === "fire") {
+          return {
+            icon: "fa-fire-flame-curved",
+            color: "#f97316",
+            className: "type-fire",
+            pulse: false,
+          };
+        }
+        if (normalized === "medical") {
+          return {
+            icon: "fa-briefcase-medical",
+            color: "#dc2626",
+            className: "type-medical",
+            pulse: false,
+          };
+        }
+        if (normalized === "accident") {
+          return {
+            icon: "fa-car-burst",
+            color: "#eab308",
+            className: "type-accident",
+            pulse: false,
+          };
+        }
+        if (normalized === "injury") {
+          return {
+            icon: "fa-user-injured",
+            color: "#be123c",
+            className: "type-injury",
+            pulse: false,
+          };
+        }
+        if (normalized === "crime" || normalized === "security") {
+          return {
+            icon: "fa-user-shield",
+            color: "#2563eb",
+            className: "type-crime",
+            pulse: false,
+          };
+        }
+        return {
+          icon: "fa-triangle-exclamation",
+          color: "#64748b",
+          className: "type-generic",
+          pulse: false,
+        };
+      }
+
+      function createIncidentIcon(type) {
+        const visual = getIncidentVisual(type);
+        return L.divIcon({
+          className: `incident-alert-marker ${visual.className} ${visual.pulse ? "has-pulse" : ""}`,
+          html: `<span class="pulse-ring"></span><span class="marker-core"><i class="fa-solid ${visual.icon}"></i></span>`,
+          iconSize: [42, 42],
+          iconAnchor: [21, 21],
+        });
+      }
 
       function getIncidentCoordinates(incident) {
         const location = incident?.location || {};
@@ -193,6 +342,7 @@
         const coordinates = getIncidentCoordinates(incident);
         selectedIncidentForManage = incident;
         stopSosLoopAlert();
+        markIncidentSeen(incident?.id);
 
         detailCaller.textContent = incident.callerName || "Unknown Caller";
         detailContact.textContent = incident.contact || "N/A";
@@ -213,17 +363,103 @@
         incidentModal.setAttribute("aria-hidden", "true");
       }
 
+      function renderUnseenPanel() {
+        const entries = Array.from(unseenIncidents.values());
+        notificationBadge.textContent = String(entries.length);
+
+        if (!entries.length) {
+          notificationList.innerHTML =
+            '<div style="color:#94a3b8;font-size:12px;padding:8px 6px;">No new incidents.</div>';
+          return;
+        }
+
+        notificationList.innerHTML = "";
+        entries
+          .sort((a, b) => (b.createdAtMs || 0) - (a.createdAtMs || 0))
+          .forEach((entry) => {
+            const visual = getIncidentVisual(entry.type);
+            const row = document.createElement("div");
+            row.className = "notification-item";
+            row.innerHTML = `
+              <div class="notif-icon" style="background:${escapeHtml(visual.color)};">
+                <i class="fa-solid ${escapeHtml(visual.icon)}"></i>
+              </div>
+              <div class="notif-main">
+                <strong>${escapeHtml(String(entry.type || "Incident").toUpperCase())} - ${escapeHtml(entry.callerName || "Unknown Caller")}</strong>
+                <span>${escapeHtml(entry.locationLabel || "Unknown location")}</span>
+              </div>
+              <button type="button" class="notif-view">View</button>
+            `;
+
+            row.querySelector(".notif-view").addEventListener("click", () => {
+              const incident = entry.incident;
+              if (!incident) {
+                return;
+              }
+              const coords = getIncidentCoordinates(incident);
+              if (coords) {
+                map.panTo([coords.lat, coords.lng], { animate: true });
+              }
+              openIncidentModal(incident);
+            });
+            notificationList.appendChild(row);
+          });
+      }
+
+      function markIncidentSeen(incidentId) {
+        if (!incidentId) {
+          return;
+        }
+        if (unseenIncidents.has(incidentId)) {
+          unseenIncidents.delete(incidentId);
+          renderUnseenPanel();
+        }
+      }
+
+      function showToastForIncident(incident) {
+        if (!toastStack) {
+          return;
+        }
+        const visual = getIncidentVisual(incident.type);
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        const coords = getIncidentCoordinates(incident);
+        const locationLabel = getLocationLabel(incident, coords);
+        toast.innerHTML = `
+          <div class="toast-icon" style="background:${escapeHtml(visual.color)};">
+            <i class="fa-solid ${escapeHtml(visual.icon)}"></i>
+          </div>
+          <div class="toast-body">
+            <p class="toast-title">${escapeHtml(String(incident.type || "Incident").toUpperCase())} reported</p>
+            <p class="toast-subtitle">${escapeHtml(incident.callerName || "Unknown Caller")} • ${escapeHtml(locationLabel)}</p>
+          </div>
+          <div class="toast-actions">
+            <button type="button" class="toast-view">View</button>
+          </div>
+        `;
+        toast.querySelector(".toast-view").addEventListener("click", () => {
+          const coords = getIncidentCoordinates(incident);
+          if (coords) {
+            map.panTo([coords.lat, coords.lng], { animate: true });
+          }
+          openIncidentModal(incident);
+          toast.remove();
+        });
+        toastStack.appendChild(toast);
+        setTimeout(() => toast.remove(), 6500);
+      }
+
       function playNotificationAlert() {
         notifAudio.currentTime = 0;
         notifAudio.play().catch(() => {
-          // Ignore autoplay restrictions; alert will play after first user interaction.
+          enableSoundBtn?.classList.add("is-visible");
         });
       }
 
       function playSosLoopAlert() {
         sosLoopAudio.currentTime = 0;
         sosLoopAudio.play().catch(() => {
-          // Ignore autoplay restrictions; alert will play after first user interaction.
+          enableSoundBtn?.classList.add("is-visible");
         });
       }
 
@@ -237,10 +473,31 @@
       function setupSosAcknowledgeHooks() {
         const acknowledge = () => {
           stopSosLoopAlert();
+          unlockAudio().catch(() => {});
         };
         ["click", "keydown", "touchstart"].forEach((eventName) => {
           document.addEventListener(eventName, acknowledge, true);
         });
+      }
+
+      async function unlockAudio() {
+        if (audioUnlocked) {
+          return true;
+        }
+        try {
+          const previousNotifVolume = notifAudio.volume;
+          notifAudio.volume = 0;
+          await notifAudio.play();
+          notifAudio.pause();
+          notifAudio.currentTime = 0;
+          notifAudio.volume = previousNotifVolume;
+          audioUnlocked = true;
+          enableSoundBtn?.classList.remove("is-visible");
+          return true;
+        } catch (error) {
+          enableSoundBtn?.classList.add("is-visible");
+          throw error;
+        }
       }
 
       function handleNewIncidentAlerts(snapshotIncidents) {
@@ -267,6 +524,23 @@
             hasNewNonSos = true;
           }
           knownIncidentIds.add(incident.id);
+
+          const coords = getIncidentCoordinates(incident);
+          const locationLabel = getLocationLabel(incident, coords);
+          const createdAtMs =
+            typeof incident?.createdAt?.toDate === "function"
+              ? incident.createdAt.toDate().getTime()
+              : Date.now();
+          unseenIncidents.set(incident.id, {
+            id: incident.id,
+            type: incident.type,
+            callerName: incident.callerName || "Unknown Caller",
+            locationLabel,
+            createdAtMs,
+            incident,
+          });
+          renderUnseenPanel();
+          showToastForIncident(incident);
         });
 
         Array.from(knownIncidentIds).forEach((id) => {
@@ -331,14 +605,21 @@
         if (markerRegistry.has(incident.id)) {
           const existing = markerRegistry.get(incident.id);
           existing.iconMarker.setLatLng([coordinates.lat, coordinates.lng]);
+          existing.iconMarker.setIcon(createIncidentIcon(incident.type));
           existing.iconMarker.setZIndexOffset(1000);
           existing.haloMarker.setLatLng([coordinates.lat, coordinates.lng]);
+          const visual = getIncidentVisual(incident.type);
+          existing.haloMarker.setStyle({
+            fillColor: visual.color,
+            color: "#ffffff",
+          });
           existing.incident = incident;
           return;
         }
 
+        const visual = getIncidentVisual(incident.type);
         const iconMarker = L.marker([coordinates.lat, coordinates.lng], {
-          icon: markerIcon,
+          icon: createIncidentIcon(incident.type),
           keyboard: false,
           riseOnHover: true,
         }).addTo(map);
@@ -348,7 +629,7 @@
           radius: 14,
           color: "#ffffff",
           weight: 2,
-          fillColor: "#ef4444",
+          fillColor: visual.color,
           fillOpacity: 0.38,
         }).addTo(map);
 
@@ -384,9 +665,11 @@
         }
 
         const indicator = document.createElement("button");
+        const visual = getIncidentVisual(incident.type);
         indicator.type = "button";
         indicator.className = "edge-indicator";
-        indicator.innerHTML = '<i class="fa-solid fa-location-dot"></i>';
+        indicator.innerHTML = `<i class="fa-solid ${visual.icon}"></i>`;
+        indicator.style.background = visual.color;
         indicator.title = `${incident.callerName || "Caller"} - ${incident.type || "Incident"}`;
         indicator.addEventListener("click", () => {
           const state = incidentRegistry.get(id);
@@ -444,6 +727,9 @@
           );
 
           const indicator = getOrCreateEdgeIndicator(id, incident);
+          const visual = getIncidentVisual(incident.type);
+          indicator.innerHTML = `<i class="fa-solid ${visual.icon}"></i>`;
+          indicator.style.background = visual.color;
           indicator.style.left = `${x}px`;
           indicator.style.top = `${y}px`;
         });
@@ -479,6 +765,56 @@
         debugBadge.classList.toggle("has-missing", missingCount > 0);
       }
 
+      function openMarkerModal() {
+        markerModal.classList.remove("hidden");
+        markerModal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeMarkerModal() {
+        markerModal.classList.add("hidden");
+        markerModal.setAttribute("aria-hidden", "true");
+      }
+
+      function renderCustomMarkerEntry(entry) {
+        const lat = Number(entry?.location?.lat);
+        const lng = Number(entry?.location?.lng);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+          return;
+        }
+        const iconClass = entry.icon || "fa-location-dot";
+        const color = entry.color || "#2563eb";
+        const markerHtml = `<div class="custom-map-marker" style="color:${escapeHtml(color)};"><i class="fa-solid ${escapeHtml(iconClass)}"></i></div>`;
+        const marker = L.marker([lat, lng], {
+          icon: L.divIcon({
+            className: "",
+            html: markerHtml,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11],
+          }),
+        });
+        marker.bindPopup(
+          `<strong>${escapeHtml(entry.name || "Custom Marker")}</strong><br/>${escapeHtml(entry.type || "custom")}`,
+        );
+        marker.addTo(map);
+        customMarkerRegistry.set(entry.id, marker);
+      }
+
+      function syncCustomMarkers(entries) {
+        const ids = new Set(entries.map((item) => item.id));
+        customMarkerRegistry.forEach((marker, id) => {
+          if (!ids.has(id)) {
+            map.removeLayer(marker);
+            customMarkerRegistry.delete(id);
+          }
+        });
+        entries.forEach((entry) => {
+          if (customMarkerRegistry.has(entry.id)) {
+            return;
+          }
+          renderCustomMarkerEntry(entry);
+        });
+      }
+
       await requireAdminSession({ autoRedirect: true });
 
       map = L.map("map", {
@@ -509,6 +845,41 @@
         transferToIncidentsPage(selectedIncidentForManage.id);
       });
       setupSosAcknowledgeHooks();
+      clearNotificationsBtn.addEventListener("click", () => {
+        unseenIncidents.clear();
+        renderUnseenPanel();
+      });
+      renderUnseenPanel();
+      enableSoundBtn.addEventListener("click", async () => {
+        try {
+          await unlockAudio();
+          playNotificationAlert();
+        } catch {
+          alert(
+            "Sound is blocked by the browser. Please interact with the page (tap/click) to enable audio.",
+          );
+        }
+      });
+      openMarkerModalBtn.addEventListener("click", openMarkerModal);
+      closeMarkerModalBtn.addEventListener("click", closeMarkerModal);
+      cancelMarkerBtn.addEventListener("click", closeMarkerModal);
+      markerModal
+        .querySelector(".incident-modal-backdrop")
+        .addEventListener("click", closeMarkerModal);
+      saveMarkerBtn.addEventListener("click", () => {
+        const markerName = markerNameInput.value.trim() || "Custom Marker";
+        const markerType = markerTypeSelect.value.trim() || "custom";
+        const markerIcon = markerIconSelect.value.trim() || "fa-location-dot";
+        const markerColor = markerColorInput.value || "#2563eb";
+        pendingCustomMarker = {
+          name: markerName,
+          type: markerType,
+          icon: markerIcon,
+          color: markerColor,
+        };
+        closeMarkerModal();
+        alert("Now click on the map to place the custom marker.");
+      });
 
       subscribeActiveIncidents((incidents) => {
         handleNewIncidentAlerts(incidents);
@@ -551,6 +922,25 @@
         });
         incidentsReady = true;
         tryShowPage();
+      });
+      subscribeMapMarkers((markers) => {
+        syncCustomMarkers(markers);
+      });
+      map.on("click", async (event) => {
+        if (!pendingCustomMarker) {
+          return;
+        }
+        const payload = {
+          ...pendingCustomMarker,
+          lat: event.latlng.lat,
+          lng: event.latlng.lng,
+        };
+        pendingCustomMarker = null;
+        try {
+          await addMapMarker(payload);
+        } catch (error) {
+          alert(error?.message || "Unable to save custom marker.");
+        }
       });
     </script>
   </body>
